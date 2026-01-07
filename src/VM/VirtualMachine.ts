@@ -43,7 +43,14 @@ export class VirtualMachine extends InstructionSet
             throw new Error('Module resolution is not supported.');
         });
 
-        for (const [name, fn] of Object.entries(options.functions ?? {})) {
+        options.functions = options.functions ?? {};
+        if (! ('print' in options.functions)) {
+            options.functions.print = (...args: any[]) => {
+                console.log(...args);
+            };
+        }
+
+        for (const [name, fn] of Object.entries(options.functions)) {
             this.registerFunction(name, fn);
         }
 

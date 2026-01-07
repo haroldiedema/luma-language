@@ -1,0 +1,1038 @@
+// This file is auto-generated via "scripts/generate.ts". Do not edit directly.
+import { Opcode, Program }   from '../Program/index.js';
+import { ForbiddenKeys }     from './ForbiddenKeys.js';
+import { dispatchNative }    from './NativeDispatcher.js';
+import { State }             from './State.js';
+import { HostClassContract } from './VirtualMachineOptions.js';
+
+/**
+ * Handles instruction execution for the VM.
+ *
+ * This class is auto-generated. Do not edit directly.
+ */
+export abstract class InstructionSet
+{
+    protected abstract state: State;
+    protected abstract program: Program;
+    protected abstract hostFunctions: Map<string, Function>;
+    protected abstract hostClasses: Map<string, HostClassContract>;
+    protected abstract moduleCache: Record<string, any>;
+    protected abstract resolveModule: (moduleName: string) => Program | undefined;
+    
+    /**
+     * Executes instructions until the budget is exhausted or the VM halts.
+     *
+     * @param {number} budget The maximum number of instructions to execute.
+     * @param {number} deltaTime The time elapsed since the last execution (in milliseconds).
+     * @returns {boolean} True if the VM has halted, false otherwise.
+     */
+    protected execute(budget: number, deltaTime: number = 16.6): [number, boolean]
+    {
+        const state = this.state;
+
+        state.wallTime += deltaTime;
+
+        for (const frame of state.frames) {
+            if (frame.sleepTimer > 0) {
+                frame.sleepTimer -= deltaTime;
+                frame.sleepTimer = Math.max(0, frame.sleepTimer);
+            }
+        }
+
+        if (state.sleepTime > 0) {
+            state.sleepTime -= deltaTime;
+            state.sleepTime = Math.max(0, state.sleepTime);
+        }
+
+        if (state.isSleeping) {
+            return [budget, false];
+        }
+
+        while (budget > 0 && ! state.isHalted && ! state.isSleeping && ! state.isAwaitingPromise) {
+            budget--;
+
+            // Note: Don't use the cached version of program/instructions here,
+            //       as the currentProgram may change due to CALL/CALL_METHOD/IMPORT.
+            const instructions = state.currentProgram.instructions;
+            if (state.ip >= instructions.length) {
+                state.isHalted = true;
+                break;
+            }
+
+            const instr = instructions[state.ip];
+            if (! instr?.op) {
+                throw new Error(`Instruction format invalid: ${JSON.stringify(instr)}`);
+            }
+
+            state.ip++; // Automatic IP Increment (Standard VM behavior)
+
+            switch (instr.op) {
+                case Opcode.ADD: this.__op_add(instr.arg); break;
+                case Opcode.ARRAY_PUSH: this.__op_arrayPush(instr.arg); break;
+                case Opcode.CALL: this.__op_call(instr.arg); break;
+                case Opcode.CALL_METHOD: this.__op_callMethod(instr.arg); break;
+                case Opcode.CALL_PARENT: this.__op_callParent(instr.arg); break;
+                case Opcode.SUPER: this.__op__super(instr.arg); break;
+                case Opcode.CONST: this.__op_constant(instr.arg); break;
+                case Opcode.DIV: this.__op_div(instr.arg); break;
+                case Opcode.DUP: this.__op_dup(instr.arg); break;
+                case Opcode.EQ: this.__op_eq(instr.arg); break;
+                case Opcode.EXP: this.__op_exp(instr.arg); break;
+                case Opcode.EXPORT: this.__op__export(instr.arg); break;
+                case Opcode.GET_PROP: this.__op_getProp(instr.arg); break;
+                case Opcode.GT: this.__op_gt(instr.arg); break;
+                case Opcode.GTE: this.__op_gte(instr.arg); break;
+                case Opcode.HALT: this.__op_halt(instr.arg); break;
+                case Opcode.IMPORT: this.__op__import(instr.arg); break;
+                case Opcode.IN: this.__op__in(instr.arg); break;
+                case Opcode.IS: this.__op_is(instr.arg); break;
+                case Opcode.ITER_INIT: this.__op_iterInit(instr.arg); break;
+                case Opcode.ITER_NEXT: this.__op_iterNext(instr.arg); break;
+                case Opcode.JMP: this.__op_jmp(instr.arg); break;
+                case Opcode.JMP_IF_FALSE: this.__op_jmpIfFalse(instr.arg); break;
+                case Opcode.JMP_IF_TRUE: this.__op_jmpIfTrue(instr.arg); break;
+                case Opcode.LOAD: this.__op_load(instr.arg); break;
+                case Opcode.LT: this.__op_lt(instr.arg); break;
+                case Opcode.LTE: this.__op_lte(instr.arg); break;
+                case Opcode.MAKE_ARRAY: this.__op_makeArray(instr.arg); break;
+                case Opcode.MAKE_CLASS: this.__op_makeClass(instr.arg); break;
+                case Opcode.MAKE_FUNCTION: this.__op_makeFunction(instr.arg); break;
+                case Opcode.MAKE_METHOD: this.__op_makeMethod(instr.arg); break;
+                case Opcode.MAKE_OBJECT: this.__op_makeObject(instr.arg); break;
+                case Opcode.MAKE_RANGE: this.__op_makeRange(instr.arg); break;
+                case Opcode.MOD: this.__op_mod(instr.arg); break;
+                case Opcode.MUL: this.__op_mul(instr.arg); break;
+                case Opcode.NEG: this.__op_neg(instr.arg); break;
+                case Opcode.NEQ: this.__op_neq(instr.arg); break;
+                case Opcode.NEW: this.__op__new(instr.arg); break;
+                case Opcode.NOT: this.__op_not(instr.arg); break;
+                case Opcode.POP: this.__op_pop(instr.arg); break;
+                case Opcode.RET: this.__op_ret(instr.arg); break;
+                case Opcode.SET_PROP: this.__op_setProp(instr.arg); break;
+                case Opcode.STORE: this.__op_store(instr.arg); break;
+                case Opcode.SUB: this.__op_sub(instr.arg); break;
+                case Opcode.SWAP: this.__op_swap(instr.arg); break;
+                case Opcode.WAIT: this.__op_wait(instr.arg); break;
+                default:
+                    throw new Error(`Unknown opcode: ${instr.op}`);
+            }
+        }
+
+        return [budget, state.isHalted];
+    }
+    
+    protected __op_add(arg: any): void
+    {
+        const b = this.state.pop();
+        const a = this.state.pop();
+    
+        this.state.push(a + b);
+    }
+
+    protected __op_arrayPush(arg: any): void
+    {
+        const value = this.state.pop();
+        const array = this.state.pop(); // Pop the array reference
+    
+        if (! Array.isArray(array)) throw new Error('Expected array');
+    
+        array.push(value);
+    }
+
+    protected __op_call(arg: any): void
+    {
+        const operand: {
+            name: string,
+            addr: number | null, // explicitly allow null
+            args: number,
+        } = arg;
+    
+        if (operand.addr !== null && operand.addr !== undefined) {
+            this.state.pushFrame(this.state.ip, {
+                name: operand.name,
+            });
+            this.state.ip = operand.addr;
+            return;
+        }
+    
+        if (operand.name && this.hostFunctions.has(operand.name)) {
+            const args: any[] = [];
+            for (let i = 0; i < operand.args; i++) {
+                args.unshift(this.state.pop());
+            }
+    
+            const result = this.hostFunctions.get(operand.name)!(...args);
+    
+            if (result instanceof Promise) {
+                this.state.isAwaitingPromise = true;
+    
+                result.then((resolved) => {
+                    this.state.push(resolved ?? null);
+                    this.state.isAwaitingPromise = false;
+                }).catch((e) => {
+                    this.state.isAwaitingPromise = false;
+                    throw e;
+                });
+    
+                return;
+            }
+    
+            this.state.push(result ?? null);
+            return;
+        }
+    
+        throw new Error(`The function "${operand.name}" does not exist.`);
+    }
+
+    protected __op_callMethod(arg: any): void
+    {
+        const name: string      = arg.name;
+        const argsCount: number = arg.args;
+        const receiver: any     = this.state.pop();
+    
+        if (! receiver || typeof receiver !== 'object') {
+            throw new Error(receiver
+                ? `Attempt to call method '${name}' on ${typeof receiver}.`
+                : `Attempt to call method '${name}' on an undefined value.`,
+            );
+        }
+    
+        const func = receiver[name];
+    
+        // Method is a user-defined function (bytecode).
+        if (typeof func === 'object' && func.addr !== undefined && func.prog !== undefined) {
+            const currentFrame = this.state.pushFrame(this.state.ip, {
+                name:    func.name,
+                program: func.prog,
+            });
+    
+            currentFrame.locals['this'] = receiver;
+            this.state.ip                    = func.addr;
+            return;
+        }
+    
+        // Native method call.
+        if (typeof func === 'function') {
+            const args: any[] = [];
+    
+            for (let i = 0; i < argsCount; i++) {
+                args.unshift(this.state.pop());
+            }
+    
+            const result = dispatchNative(receiver, name, args);
+            this.state.push(result);
+            return;
+        }
+    
+        throw new Error(`The method "${name}" does not exist on the receiver object.`);
+    }
+
+    protected __op_callParent(arg: any): void
+    {
+        const argCount: number = arg;
+        const cls: any         = this.state.pop(); // Pop "Point"
+    
+        if (! cls || cls.type !== 'class') {
+            throw new Error(`'super' call requires a class.`);
+        }
+    
+        if (cls.isHostClass) {
+            const hostArgs: any[] = [];
+    
+            for (let i = 0; i < argCount; i++) {
+                hostArgs.unshift(this.state.pop());
+            }
+    
+            const instance = this.state.pop();
+            const hostInstance = new cls.constructor(...hostArgs);
+    
+            Object.defineProperty(instance, '__host_target__', {
+                value:        hostInstance,
+                enumerable:   false,
+                writable:     false,
+                configurable: false,
+            });
+    
+            const allowedProperties = cls.properties ?? [];
+            for (const prop of allowedProperties) {
+                Object.defineProperty(instance, prop, {
+                    get: () => hostInstance[prop],
+                    set: (value) => { hostInstance[prop] = value; },
+                    enumerable:   true,
+                    configurable: true,
+                });
+            }
+    
+            const allowedMethods = cls.methods ?? [];
+            for (const method of allowedMethods) {
+                if (! instance?.__class?.methods[method]) {
+                    instance[method] = (...args: any[]) => hostInstance[method](...args);
+                }
+            }
+    
+            this.state.push(null);
+            return;
+        }
+    
+        if (argCount !== cls.paramCount) {
+            throw new Error(`Class "${cls.name}" expects ${cls.paramCount} argument${cls.paramCount === 1 ? '' : 's'}, but got ${argCount}.`);
+        }
+    
+        const thisIndex = this.state.stack.length - argCount - 1;
+        const instance  = this.state.stack[thisIndex];
+    
+        this.state.stack.splice(thisIndex, 1); // Remove 'this' from the stack.
+    
+        const frame = this.state.pushFrame(this.state.ip, {
+            name:    `super ${cls.name}`,
+            program: cls.prog,
+        });
+    
+        frame.locals['this'] = instance;
+        this.state.ip             = cls.constructorAddr;
+    }
+
+    protected __op__super(arg: any): void
+    {
+        const operand: { name: string, args: number, callee: string } = arg;
+        const {name, args, callee}                                    = operand;
+    
+        const thisIndex = this.state.stack.length - args - 1;
+    
+        const instance = this.state.stack[thisIndex];
+        if (! instance) {
+            throw new Error(`Attempt to call parent method "${name}" on an undefined value.`);
+        }
+    
+        const cls = instance.__class;
+        if (! cls) {
+            throw new Error(`Instance has no class to call super method "${name}" on.`);
+        }
+    
+        const ownerClass = this.state.getVar(callee);
+        const parent     = ownerClass.parent;
+    
+        if (! parent) {
+            throw new Error(`Class "${cls.name}" has no parent to call "${name}" on.`);
+        }
+    
+        if (parent.isHostClass) {
+            if (! parent.methods.includes(name)) {
+                throw new Error(`Method "${name}" not found in parent host class "${parent.name}".`);
+            }
+    
+            const hostArgs: any[] = [];
+    
+            for (let i = 0; i < args; i++) {
+                hostArgs.unshift(this.state.pop());
+            }
+    
+            this.state.pop(); // Pop 'this'
+            this.state.push(instance.__host_target__[name](...hostArgs));
+            return;
+        }
+    
+        const method = parent.methods[name];
+        if (! method) {
+            throw new Error(`Method "${name}" not found in parent class "${parent.name}".`);
+        }
+    
+        const frame = this.state.pushFrame(this.state.ip, {
+            program: method.prog,
+            name:    `parent.${name}`,
+        });
+    
+        frame.locals['this'] = instance;
+        this.state.ip             = method.addr;
+    }
+
+    protected __op_constant(arg: any): void
+    {
+        this.state.push(arg);
+    }
+
+    protected __op_div(arg: any): void
+    {
+        const b = this.state.pop();
+        const a = this.state.pop();
+    
+        this.state.push(a / b);
+    }
+
+    protected __op_dup(arg: any): void
+    {
+        const val = this.state.peek();
+    
+        this.state.push(val);
+    }
+
+    protected __op_eq(arg: any): void
+    {
+        const b = this.state.pop();
+        const a = this.state.pop();
+    
+        this.state.push(a == b);
+    }
+
+    protected __op_exp(arg: any): void
+    {
+        const b = this.state.pop();
+        const a = this.state.pop();
+    
+        this.state.push(a ** b);
+    }
+
+    protected __op__export(arg: any): void
+    {
+        const exportName = this.state.pop();
+        const sourceName = this.state.pop();
+        const frame      = this.state.frames[this.state.frames.length - 1];
+    
+        if (! frame) return;
+    
+        const moduleHash = frame.program.hash;
+        const exports    = frame.exports;
+    
+        // 1. Metadata setup (Same as before)
+        if (! Object.prototype.hasOwnProperty.call(exports, '__vm_meta')) {
+            Object.defineProperty(exports, '__vm_meta', {
+                value:        {
+                    hash:     moduleHash,
+                    bindings: {} as Record<string, string>,
+                },
+                enumerable:   false,
+                writable:     true,
+                configurable: true,
+            });
+        }
+    
+        exports.__vm_meta.bindings[exportName] = sourceName;
+    
+        // 2. Define Getter AND Setter
+        Object.defineProperty(exports, exportName, {
+            enumerable:   true,
+            configurable: true,
+            get:          () => {
+                const scope = this.state.scopes[moduleHash];
+                return scope ? scope[sourceName] : undefined;
+            },
+            set:          (val: any) => {
+                const scope = this.state.scopes[moduleHash];
+                if (scope) {
+                    scope[sourceName] = val;
+                }
+            },
+        });
+    }
+
+    protected __op_getProp(arg: any): void
+    {
+        const key: string = this.state.pop();
+        const obj: any    = this.state.pop();
+    
+        if (ForbiddenKeys.has(key)) {
+            throw new Error(`Access to property "${key}" is forbidden.`);
+        }
+    
+        if (Array.isArray(obj)) {
+            if (key === 'length' || key === 'size') {
+                this.state.push(obj.length);
+                return;
+            }
+    
+            const index = Number(key);
+            if (isNaN(index)) throw new Error(`Array index must be a number, got "${key}".`);
+            if (index < 0 || index >= obj.length) throw new Error(`The index #${index} is out of bounds [0] - [${obj.length - 1}].`);
+    
+            this.state.push(obj[index]);
+        } else if (obj instanceof Map) {
+            const val = obj.get(key);
+            this.state.push(val === undefined ? null : val);
+        } else if (obj && typeof obj === 'object') {
+            if (! (key in obj)) {
+                const o = arg ? `"${arg}"` : '"object"';
+                throw new Error(`The property "${key}" does not exist on ${o}.`);
+            }
+    
+            const val = obj[key];
+            this.state.push(val === undefined ? null : val);
+        } else {
+            const target = arg ? `'${arg}'` : 'object';
+            throw new Error(`Cannot access property "${key}" of "${target}" because "${target}" is not defined.`);
+        }
+    }
+
+    protected __op_gt(arg: any): void
+    {
+        const b = this.state.pop();
+        const a = this.state.pop();
+    
+        this.state.push(a > b);
+    }
+
+    protected __op_gte(arg: any): void
+    {
+        const b = this.state.pop();
+        const a = this.state.pop();
+    
+        this.state.push(a >= b);
+    }
+
+    protected __op_halt(arg: any): void
+    {
+        this.state.isHalted = true;
+    }
+
+    protected __op__import(arg: any): void
+    {
+        // 1. Cache Check
+        if (this.moduleCache[arg]) {
+            const moduleExports = this.moduleCache[arg];
+    
+            if (typeof moduleExports !== 'object') {
+                throw new Error(`Cached module is invalid: ${arg}`);
+            }
+    
+            // 2. Handle Cached Module (No instructions)
+            if (! moduleExports.instructions) {
+                this.state.push(moduleExports);
+                return;
+            }
+    
+            // 3. Execution Setup (The Context Switch)
+            this.state.pushFrame(this.state.ip, {
+                isModule:   true,
+                program:    moduleExports,
+                moduleName: arg,
+            });
+    
+            this.state.ip = 0;
+            return;
+        }
+    
+        const moduleProgram = this.resolveModule(arg);
+        if (! moduleProgram || typeof moduleProgram !== 'object') {
+            throw new Error(`The module "${arg}" does not exist.`);
+        }
+    
+        // 3. Handle Native/JSON Modules (No instructions)
+        if (! moduleProgram.instructions) {
+            this.state.push(moduleProgram);
+            // Save to cache immediately since there is no execution step
+            this.moduleCache[arg] = moduleProgram;
+            return;
+        }
+    
+        // 4. Execution Setup (The Context Switch)
+        this.state.pushFrame(this.state.ip, {
+            isModule:   true,
+            program:    moduleProgram,
+            moduleName: arg,
+        });
+    
+        this.state.ip = 0;
+    }
+
+    protected __op__in(arg: any): void
+    {
+        const container = this.state.pop(); // The haystack (array, string, object)
+        const item      = this.state.pop(); // The needle
+    
+        if (container == null) {
+            throw new Error('Argument \'in\' null/undefined is invalid.');
+        }
+    
+        if (Array.isArray(container)) {
+            this.state.push(container.includes(item));
+            return;
+        }
+    
+        if (typeof container === 'string') {
+            // Enforce string-to-string comparison to avoid "true" in "string" weirdness
+            this.state.push(container.includes(String(item)));
+            return;
+        }
+    
+        if (container instanceof Map) {
+            this.state.push(container.has(item));
+            return;
+        }
+    
+        if (typeof container === 'object') {
+            this.state.push(item in container);
+            return;
+        }
+    
+        throw new Error(`Runtime Error: 'in' operator not supported for type '${typeof container}'`);
+    }
+
+    protected __op_is(arg: any): void
+    {
+        const targetClass = this.state.pop(); // The Class (RHS)
+        const instance    = this.state.pop(); // The Object (LHS)
+    
+        // 1. Safety Check: If LHS is null/undefined, it is not an instance of anything.
+        if (instance === null || instance === undefined) {
+            this.state.push(false);
+            return;
+        }
+    
+        // 2. Validation: RHS must be a Class (Luma or Host)
+        if (!targetClass || (targetClass.type !== 'class' && targetClass.type !== 'Blueprint')) {
+            // Optional: Support "is String" / "is Number" if you expose those as globals later.
+            throw new Error("Right-hand side of 'is' must be a Class.");
+        }
+    
+        // --- CASE A: Host Class Check ---
+        if (targetClass.isHostClass) {
+            // 1. Is the instance a raw JS object?
+            if (instance instanceof targetClass.constructor) {
+                this.state.push(true);
+                return;
+            }
+    
+            // 2. Is it a Luma Wrapper around a Host Object? (created via new HostClass)
+            if (instance.__host_target__ && instance.__host_target__ instanceof targetClass.constructor) {
+                this.state.push(true);
+                return;
+            }
+    
+            this.state.push(false);
+            return;
+        }
+    
+        // --- CASE B: Luma Class Check (Walk the Chain) ---
+    
+        // Get the class of the instance
+        // Note: Adjust property name based on your exact object structure (__class vs __blueprint)
+        let currentClass = instance.__class || instance.__blueprint;
+    
+        while (currentClass) {
+            // Found a match?
+            // We compare references (memory addresses) of the class objects.
+            if (currentClass === targetClass) {
+                this.state.push(true);
+                return;
+            }
+    
+            // Move up the chain
+            currentClass = currentClass.parent;
+        }
+    
+        this.state.push(false);
+    }
+
+    protected __op_iterInit(arg: any): void
+    {
+        this.state.push({items: this.state.pop(), index: 0});
+    }
+
+    protected __op_iterNext(arg: any): void
+    {
+        const iterator = this.state.peek();
+    
+        if (! iterator) {
+            throw new Error('Iterator expected on stack');
+        }
+    
+        if (iterator.index >= iterator.items.length) {
+            this.state.pop();
+            this.state.ip = arg;
+            return;
+        }
+    
+        const item = iterator.items[iterator.index];
+        iterator.index++;
+        this.state.push(item);
+    }
+
+    protected __op_jmp(arg: any): void
+    {
+        this.state.ip = arg;
+    }
+
+    protected __op_jmpIfFalse(arg: any): void
+    {
+        const condition = this.state.pop();
+    
+        if (! this.state.isTruthy(condition)) {
+            this.state.ip = arg;
+        }
+    }
+
+    protected __op_jmpIfTrue(arg: any): void
+    {
+        const condition = this.state.pop();
+    
+        if (this.state.isTruthy(condition)) {
+            this.state.ip = arg;
+        }
+    }
+
+    protected __op_load(arg: any): void
+    {
+        if (this.hostClasses.has(arg)) {
+            this.state.push({
+                type:        'class',
+                name:        arg,
+                isHostClass: true,
+                ...this.hostClasses.get(arg)!,
+            });
+    
+            return;
+        }
+    
+        this.state.push(this.state.getVar(arg));
+    }
+
+    protected __op_lt(arg: any): void
+    {
+        const b = this.state.pop();
+        const a = this.state.pop();
+    
+        this.state.push(a < b);
+    }
+
+    protected __op_lte(arg: any): void
+    {
+        const b = this.state.pop();
+        const a = this.state.pop();
+    
+        this.state.push(a <= b);
+    }
+
+    protected __op_makeArray(arg: any): void
+    {
+        const arr: any[] = [];
+    
+        for (let i: number = 0; i < arg; i++) {
+            arr.unshift(this.state.pop());
+        }
+    
+        this.state.push(arr);
+    }
+
+    protected __op_makeClass(arg: any): void
+    {
+        const [name, addr, paramCount] = arg;
+    
+        const parent = this.state.pop();
+    
+        if (parent !== null && parent.type !== 'class') {
+            throw new Error(`Runtime Error: Class '${name}' extends a non-class value (${parent?.type || 'null'}).`);
+        }
+    
+        const cls = {
+            type:            'class',
+            name:            name,
+            constructorAddr: addr,
+            paramCount:      paramCount || 0,
+            methods:         {},
+            prog:            this.state.currentProgram,
+            parent:          undefined,
+        };
+    
+        if (parent) {
+            Object.setPrototypeOf(cls.methods, parent.methods);
+            cls.parent = parent;
+        }
+    
+        this.state.push(cls);
+    }
+
+    protected __op_makeFunction(arg: any): void
+    {
+        this.state.push({
+            type: 'ScriptFunction',
+            addr: arg.addr,
+            args: arg.args,
+            name: arg.name,
+            prog: this.state.currentProgram,
+        });
+    }
+
+    protected __op_makeMethod(arg: any): void
+    {
+        const methodFunc = this.state.pop(); // The ScriptFunction object
+        const cls        = this.state.pop(); // The Class object
+    
+        if (! cls || ! cls.methods) {
+            throw new Error('Runtime Error: Cannot add method to non-class.');
+        }
+    
+        cls.methods[methodFunc.name] = methodFunc;
+    }
+
+    protected __op_makeObject(arg: any): void
+    {
+        const obj: Record<string, any> = {};
+    
+        // Mark this object as a VM object with a hidden property
+        Object.defineProperty(obj, '__is_vm_object__', {
+            value:        true,
+            enumerable:   false,
+            writable:     false,
+            configurable: false,
+        });
+    
+        for (let i = 0; i < arg; i++) {
+            const val = this.state.pop();
+            const key = this.state.pop();
+            obj[key]  = val;
+        }
+    
+        this.state.push(obj);
+    }
+
+    protected __op_makeRange(arg: any): void
+    {
+        const end: number   = this.state.pop();
+        const start: number = this.state.pop();
+        const arr: number[] = [];
+    
+        for (let i: number = start; i < end; i++) {
+            arr.push(i);
+        }
+    
+        this.state.push(arr);
+    }
+
+    protected __op_mod(arg: any): void
+    {
+        const b = this.state.pop();
+        const a = this.state.pop();
+    
+        this.state.push(a % b);
+    }
+
+    protected __op_mul(arg: any): void
+    {
+        const b = this.state.pop();
+        const a = this.state.pop();
+    
+        this.state.push(a * b);
+    }
+
+    protected __op_neg(arg: any): void
+    {
+        const value = this.state.pop();
+        this.state.push(-value);
+    }
+
+    protected __op_neq(arg: any): void
+    {
+        const b = this.state.pop();
+        const a = this.state.pop();
+    
+        this.state.push(a != b);
+    }
+
+    protected __op__new(arg: any): void
+    {
+        const cls: any        = this.state.pop();
+        const numArgs: number = arg;
+    
+        if (! cls || cls.type !== 'class') {
+            throw new Error('\'new\' requires a class.');
+        }
+    
+        if (cls.isHostClass) {
+            const hostArgs: any[] = [];
+    
+            for (let i = 0; i < numArgs; i++) {
+                hostArgs.unshift(this.state.pop());
+            }
+    
+            const allowedProperties = cls.properties ?? [];
+            const allowedMethods    = cls.methods ?? [];
+            const hostInstance      = new cls.constructor(...hostArgs);
+            const instance: any     = {};
+    
+            // Add live bindings for allowed properties and methods.
+            for (const prop of allowedProperties) {
+                Object.defineProperty(instance, prop, {
+                    get:          () => hostInstance[prop],
+                    set:          (value) => {
+                        hostInstance[prop] = value;
+                    },
+                    enumerable:   true,
+                    configurable: false,
+                });
+            }
+    
+            for (const method of allowedMethods) {
+                if (typeof hostInstance[method] === 'function') {
+                    instance[method] = (...args: any[]) => hostInstance[method](...args);
+                }
+            }
+    
+            instance.__class = cls;
+            this.state.push(instance);
+            return;
+        }
+    
+        const instance: any = Object.create(cls.methods);
+        instance.__class    = cls;
+    
+        // Mark this object as a VM object with a hidden property
+        Object.defineProperty(instance, '__is_vm_object__', {
+            value:        true,
+            enumerable:   false,
+            writable:     false,
+            configurable: false,
+        });
+    
+        const frame = this.state.pushFrame(this.state.ip, {
+            program: cls.prog,
+            name:    `new ${cls.name}`,
+        });
+    
+        frame.locals['this'] = instance;
+        this.state.ip             = cls.constructorAddr;
+    }
+
+    protected __op_not(arg: any): void
+    {
+        const value = this.state.pop();
+        this.state.push(! value);
+    }
+
+    protected __op_pop(arg: any): void
+    {
+        this.state.pop();
+    }
+
+    protected __op_ret(arg: any): void
+    {
+        const frame = this.state.popFrame();
+    
+        if (! frame) {
+            this.state.isHalted = true;
+            return;
+        }
+    
+        this.state.ip = frame.returnIp;
+    
+        if (frame.isInterrupt) {
+            this.state.pop(); // Clean the returned value from the stack.
+    
+            if (this.state.eventQueue.length > 0) {
+                // A. Get the next event
+                const nextEvent = this.state.eventQueue.shift()!;
+                const eventInfo =this.program.references.events[nextEvent.name];
+    
+                // B. Push Args for the NEXT event
+                for (let i = 0; i < eventInfo.numArgs; i++) {
+                    this.state.stack.push(nextEvent.args[i] ?? null);
+                }
+    
+                // C. Push a NEW Interrupt Frame
+                // CRITICAL: We reuse the 'returnIp' from the frame we JUST popped.
+                // This ensures that when the chain finally ends, we go back to the Main Script.
+                this.state.pushFrame(frame.returnIp, {
+                    name:        `<interrupt:${nextEvent.name}>`,
+                    isInterrupt: true,
+                });
+    
+                // D. Jump to the next event
+                this.state.ip = eventInfo.address;
+    
+                // We are done. We do NOT restore this.state.ip from the old frame yet.
+                return;
+            }
+    
+            // 3. Chain Empty? Now we actually return to the Main Script.
+            this.state.ip = frame.returnIp;
+            return;
+        }
+    
+        if (frame.isModule) {
+            const exports     = {};
+            const descriptors = Object.getOwnPropertyDescriptors(frame.exports);
+            Object.defineProperties(exports, descriptors);
+    
+            if (frame.moduleName) {
+                this.moduleCache[frame.moduleName] = exports;
+            }
+    
+            this.state.push(exports);
+        }
+    }
+
+    protected __op_setProp(arg: any): void
+    {
+        const val = this.state.pop();
+        const key = this.state.pop();
+        const obj = this.state.pop();
+    
+        if (ForbiddenKeys.has(key)) {
+            throw new Error(`Access to property "${key}" is forbidden.`);
+        }
+    
+        if (Array.isArray(obj)) {
+            const index = Number(key);
+    
+            if (isNaN(index)) {
+                throw new Error(`Runtime Error: Array index must be a number, got '${key}'`);
+            }
+    
+            obj[index] = val;
+        } else if (obj instanceof Map) {
+            obj.set(key, val);
+        } else if (obj && typeof obj === 'object') {
+            if (! obj.__is_vm_object__ && ! (key in obj)) {
+                throw new Error(`Cannot create new property "${key}" on host-provided object.`);
+            }
+    
+            obj[key] = val;
+        } else {
+            const target = arg ? `'${arg}'` : 'object';
+            throw new Error(`Cannot set property "${key}" of "${target}" because "${target}" is not defined.`);
+        }
+    
+        this.state.push(val);
+    }
+
+    protected __op_store(arg: any): void
+    {
+        const [name, isLocal] = arg;
+        const value           = this.state.pop();
+    
+        this.state.setVar(name, value, isLocal ?? false);
+    }
+
+    protected __op_sub(arg: any): void
+    {
+        const b = this.state.pop();
+        const a = this.state.pop();
+    
+        this.state.push(a - b);
+    }
+
+    protected __op_swap(arg: any): void
+    {
+        const b = this.state.pop();
+        const a = this.state.pop();
+    
+        this.state.push(b);
+        this.state.push(a);
+    }
+
+    protected __op_wait(arg: any): void
+    {
+        const duration = this.state.pop();
+    
+        if (typeof duration !== 'number' || duration < 0) {
+            throw new Error(`Invalid duration for WAIT: ${duration}`);
+        }
+    
+        // Check if we are inside a function/interrupt
+        if (this.state.frames.length > 0) {
+            const frame      = this.state.frames[this.state.frames.length - 1];
+            frame.sleepTimer = duration;
+        } else {
+            // Otherwise, we are pausing the Main Script
+            this.state.sleepTime = duration;
+        }
+    }
+}

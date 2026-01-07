@@ -1,0 +1,36 @@
+name: Build and Publish
+
+on:
+  push:
+    tags:
+      - '*'
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
+      - name: Update npm
+        run: npm install -g npm@latest
+      - name: Install build dependencies
+        run: npm ci
+      - name: Sync Version with Repository Tag
+        run: |
+         TAG_NAME=${{ github.ref_name }}
+         CLEAN_VERSION=${TAG_NAME#v}
+         echo "Setting package version to $CLEAN_VERSION"
+         npm version $CLEAN_VERSION --no-git-tag-version --allow-same-version
+      - name: Building package
+        run: npm run build
+      - name: Testing package
+        run: npm run test
+      - name: Publish package
+        run: npm publish

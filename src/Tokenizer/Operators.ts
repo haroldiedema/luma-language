@@ -1,0 +1,18 @@
+export const Operators = {
+    ASSIGN:         '=',
+    PLUS:           '+',
+    MINUS:          '-',
+    MULTIPLY:       '*',
+    DIVIDE:         '/',
+    MODULO:         '%',
+    EXPONENTIATION: '^',
+    EQUALS:         '==',
+    NOT_EQUALS:     '!=',
+    GREATER_THAN:   '>',
+    LESS_THAN:      '<',
+    GREATER_EQUAL:  '>=',
+    LESS_EQUAL:     '<=',
+    NOT:            '!',
+    RANGE:          '..',
+    IS:             'is',
+} as const;

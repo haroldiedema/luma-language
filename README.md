@@ -24,6 +24,8 @@ behavior scripts (like AI patrols) without blocking the main thread.
 The language package is a zero-dependency TypeScript library that can be easily
 integrated into any JavaScript/TypeScript project, in any environment.
 
+---
+
 ## Quick Start
 
 Install the package via your favorite package manager:
@@ -49,3 +51,21 @@ greet("World")
 const vm = new VirtualMachine(program);
 vm.run();
 ```
+
+---
+
+## Contributing
+
+To set up the development environment, clone the repository and install dependencies:
+
+```bash
+npm install
+```
+
+Build the project using `npm run build` or `npm run watch` for continuous builds.
+Once built, you have two options to run the tests:
+
+ - Run the entire suite once: `npm run test`
+ - Run tests in watch mode: `npm run watch:test`
+
+---

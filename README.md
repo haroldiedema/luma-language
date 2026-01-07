@@ -31,13 +31,13 @@ integrated into any JavaScript/TypeScript project, in any environment.
 Install the package via your favorite package manager:
 
 ```bash
-npm install luma-language
+npm install luma-lang
 ```
 
 Create a simple Luma script:
 
 ```typescript
-import { Compiler, VirtualMachine } from 'luma-language';
+import { Compiler, VirtualMachine } from 'luma-lang';
 
 // Compile the Luma script
 const program = Compiler.compile(`

@@ -1,0 +1,24 @@
+{
+  "name": "probo-deploy",
+  "description": "Deployment tool",
+  "version": "1.0.0",
+  "license": "proprietary",
+  "main": "dist/server.js",
+  "scripts": {
+    "build": "stencil build",
+    "watch": "stencil build --watch --serve --dev"
+  },
+  "devDependencies": {
+    "@types/marked": "^5.0.2",
+    "chokidar": "^5.0.0",
+    "typescript": "^5.9.2"
+  },
+  "dependencies": {
+    "@byteshift/events": "^1.1.1",
+    "@stencil/core": "^4.37.0",
+    "@stencil/sass": "^3.2.2",
+    "marked": "^17.0.1",
+    "marked-highlight": "^2.2.3",
+    "reflect-metadata": "^0.2.2"
+  }
+}

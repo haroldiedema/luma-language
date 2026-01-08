@@ -4,3 +4,13 @@ __snapshots__/
 dist/
 .env
 .DS_Store
+.stencil/
+.vscode/
+coverage/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+*.tgz
+*.log
+*.tsbuildinfo

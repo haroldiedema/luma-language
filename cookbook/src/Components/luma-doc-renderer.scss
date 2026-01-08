@@ -1,0 +1,50 @@
+@use '../shared' as *;
+
+:host {
+    @include flex(column, flex-start, stretch);
+    position   : relative;
+    min-height : 0;
+    flex-grow  : 1;
+}
+
+.luma-function { color : var(--fg-function); }
+
+.luma-identifier { color : var(--fg-identifier); }
+
+.luma-keyword { color : var(--fg-keyword); }
+
+.luma-string { color : var(--fg-string); }
+
+.luma-number { color : var(--fg-number); }
+
+.luma-comment { color : var(--fg-comment); }
+
+.luma-operator { color : var(--fg-operator); }
+
+.luma-punctuation { color : var(--fg-punctuation); }
+
+pre {
+    background    : var(--bg-2);
+    padding       : 15px;
+    border-radius : 5px;
+    overflow-x    : auto;
+    margin-bottom : 1rem;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    margin-top    : 0;
+    margin-bottom : 0.5rem;
+    padding-top   : 0;
+    font-weight   : 600;
+    line-height   : 1.2;
+}
+
+h1 {
+    display: none;
+}
+
+h2 {
+    border-bottom: 1px solid var(--border-1);
+    padding-bottom: 0.2rem;
+    margin-bottom: 15px;
+}

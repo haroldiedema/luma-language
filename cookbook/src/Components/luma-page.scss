@@ -1,0 +1,177 @@
+@use '../shared' as *;
+
+$headerHeight : 40px;
+
+luma-page {
+    @include flex(column, stretch, stretch);
+    position   : relative;
+    min-height : 0;
+    flex-grow  : 1;
+
+    header.page-header {
+        display    : block;
+        height     : $headerHeight;
+        background : var(--bg-2);
+
+        & > div.container {
+            @include flex(row, space-between, center);
+            height : 100%;
+
+            & > section {
+                @include flex(row, flex-start, center);
+                gap : 16px;
+
+                & > button#mobile-nav-button {
+                    @include flex(row, center, center);
+                    background : transparent;
+                    color      : var(--fg-0);
+                    border     : none;
+                    font-size  : 24px;
+                    cursor     : pointer;
+                    padding    : 8px 0;
+                    display    : none;
+
+                    &.active {
+                        color : var(--fg-2);
+                    }
+
+                    @media (max-width : 800px) {
+                        display : flex;
+                    }
+                }
+
+                & > h1 {
+                    display     : none;
+                    font-size   : 1.5rem;
+                    font-weight : 600;
+                    color       : var(--fg-0);
+
+                    @media (max-width : 800px) {
+                        display : block;
+                    }
+                }
+
+                &:last-child {
+                    h1 {
+                        display: block;
+
+                        @media (max-width : 800px) {
+                            display : none;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    main.page-body {
+        @include flex(column, stretch, stretch);
+        flex       : 1;
+        overflow-y : scroll;
+        min-height : 0;
+        background : var(--bg-1);
+
+        & > .container {
+            @include flex(row, flex-start, flex-start);
+            position : relative;
+            gap      : 20px;
+
+            @media (max-width : 800px) {
+                gap     : 0;
+                padding : 0;
+            }
+
+            & > nav.page-nav {
+                @include flex(column, stretch, flex-start);
+                position     : sticky;
+                top          : 0;
+                width        : 250px;
+                padding      : 4px 0 4px 8px;
+                overflow-y   : auto;
+                min-height   : 0;
+                border-right : 1px solid var(--border-0);
+                height       : calc(100vh - #{$headerHeight} - 80px);
+
+                @media (max-width : 800px) {
+                    width : 100%;
+                }
+
+                &:not(.show) {
+                    @media (max-width : 800px) {
+                        display : none;
+                    }
+                }
+
+                & * {
+                    display  : block;
+                    width    : 100%;
+                    position : relative;
+                    color    : var(--fg-1);
+                }
+
+                div.nav-group {
+                    @include flex(column, flex-start, stretch);
+                    width   : 100%;
+                    padding : 0;
+                }
+
+                & > div.nav-group {
+                    & > .nav-group-label {
+                        font-weight    : 600;
+                        margin-top     : 8px;
+                        margin-bottom  : 4px;
+                        text-transform : uppercase;
+                        font-size      : 0.9rem;
+                        color          : var(--fg-0);
+                    }
+
+                    & .nav-group-items {
+                        @include flex(column, flex-start, stretch);
+                        width          : 100%;
+                        padding-left   : 16px;
+                        padding-bottom : 16px;
+
+                        a {
+                            padding : 4px 0;
+                        }
+                    }
+                }
+
+                a {
+                    text-decoration : none;
+                    border-right    : 4px solid transparent;
+
+                    &:hover {
+                        border-right : 4px solid var(--border-0);
+                        color        : var(--fg-0);
+                    }
+
+                    &.nav-link.active {
+                        font-weight  : 600;
+                        border-right : 4px solid var(--border-3);
+                        color        : var(--fg-3);
+                    }
+
+                    &.nav-group-label.active {
+                        font-weight : 600 !important;
+                        color       : var(--fg-2) !important;
+                    }
+                }
+            }
+
+            & > section.page-content {
+                flex    : 1;
+                padding : 10px;
+
+                p {
+                    margin-top  : 0;
+                    padding-top : 0;
+                }
+
+                &.hide {
+                    display : none;
+                }
+            }
+        }
+    }
+}

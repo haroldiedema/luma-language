@@ -2,13 +2,55 @@
 
 export const docs = [
     {
-        "path": "/docs/getting-started-with-luma",
-        "title": "Getting started with Luma",
+        "title": "Introduction to Luma",
+        "content": "# Introduction to Luma\r\n\r\n**Welcome to Luma!**\r\n\r\nLuma is a lightweight, high-performance scripting language designed to be\r\nembedded within any **JavaScript** or **TypeScript** application. It works\r\nseamlessly on both the server and client-side and in (Web)Workers, making it an\r\nideal solution for game logic, modding systems, and rule engines.\r\n\r\n### Core Philosophy\r\n\r\n* **Embeddable:** Designed to live inside your host application, not replace it.\r\n* **Secure:** Runs in a strictly isolated sandbox. No access to the host's `window`, `process`, or global prototypes unless explicitly granted.\r\n* **Familiar:** Syntax inspired by Python (indentation-based) and JavaScript (dynamic typing).\r\n* **Resumable:** Scripts can be paused (`wait`), saved to disk, and resumed later.\r\n* **Budgeted:** Prevent infinite loops from freezing your app with tick-based execution limits.\r\n\r\n## Intuitive Syntax\r\n\r\nLuma’s syntax utilizes an **indentation-based structure** to reduce visual\r\nclutter. It supports modern features like string interpolation, array\r\ncomprehensions, and classes.\r\n\r\n```luma\r\n// A simple Luma script\r\nclass Greeter(name):\r\n    name = name\r\n\r\n    fn greet(times):\r\n        // String interpolation\r\n        print(\"Hello, {this.name}!\")\r\n        \r\n        // Python-style array comprehension\r\n        return [i * 10 for i in 0..times]\r\n\r\ngreeter = new Greeter(\"World\")\r\n\r\n// Call methods\r\nresult = greeter.greet(3)\r\n```\r\n\r\n## Security & Sandboxing\r\n\r\nOne of Luma's strongest features is its security model. Luma scripts run in a\r\nvirtualized environment that is completely isolated from the host.\r\n\r\n* **No Global Leakage:** Scripts cannot pollute the host's global scope.\r\n* **Prototype Protection:** Access to `__proto__` and `constructor` is blocked at the VM level, preventing common sandbox escapes.\r\n* **Controlled Interop:** The script can only access functions and classes (fine-tuned to individual properties and methods) you explicitly expose.\r\n\r\n## Compilation & Binary Serialization\r\n\r\nScripts in Luma are compiled into bytecode before execution. This model ensures\r\nthe scripts run efficiently and allows for binary caching.\r\n\r\n### Basic Compilation\r\n\r\nTo run a script, you compile source code into a `Program` object.\r\n\r\n```ts\r\nimport { Compiler } from 'luma-lang';\r\n\r\n// Compile a Luma script into a Program\r\nconst program = Compiler.compile(`print(\"Hello, Luma!\")`);\r\n```\r\n\r\n### Binary Export (Pre-compilation)\r\n\r\nYou can pre-compile Luma scripts to binary formats (`Uint8Array`) using the\r\n`Writer` and `Reader` APIs. This allows you to ship compiled assets and skip\r\nparsing at runtime.\r\n\r\n```ts\r\nimport { Compiler, Reader, Writer } from 'luma-lang';\r\n\r\n// 1. Serialize the Program to binary\r\nconst binary = Writer.write(program);\r\n\r\n// 2. Deserialize from binary later\r\nconst loadedProgram = Reader.read(binary);\r\n```\r\n\r\n> [!TIP] **Performance Tip:**\r\n> \r\n> Although completely optional, pre-compiling scripts to binary format can\r\n> significantly reduce load times, especially for large scripts or when loading\r\n> multiple scripts at once. This becomes critical if you load scripts during a\r\n> game loop.\r\n\r\n## Tick-based Execution & Time Travel\r\n\r\nLuma uses a **tick-based Virtual Machine**. This allows for tight integration\r\nwith host applications (like game loops) and enables the `wait` keyword directly\r\nin your scripts.\r\n\r\n```ts\r\nconst vm = new VirtualMachine(program, {\r\n    budget: 100, // Optional: Limit instructions per tick to prevent freezing\r\n});\r\n\r\n// In your application loop:\r\nfunction gameLoop() {\r\n    // Advances the VM by a frame (deltaTime in milliseconds)\r\n    vm.run(deltaTime); \r\n    \r\n    requestAnimationFrame(gameLoop); \r\n}\r\n```\r\n\r\nIn your Luma script, you can pause execution without blocking the host:\r\n\r\n```luma\r\nprint(\"Start\")\r\nwait(1000) // Pauses this script for 1 second, host keeps running!\r\nprint(\"End\")\r\n```\r\n\r\n## Native Async Interoperability\r\n\r\nLuma supports asynchronous host functions out of the box. If you expose a host\r\nfunction that returns a `Promise` (such as a database query or a `fetch` request), Luma will pause the script execution\r\nuntil that Promise resolves.\r\n\r\nThis creates an \"automatic await\" behavior, allowing you to write synchronous-looking code in Luma that handles\r\nasynchronous tasks.\r\n\r\n```ts\r\n// Expose an async function to Luma\r\nconst vm = new VirtualMachine(program, {\r\n    functions: {\r\n        // The VM detects that this returns a Promise\r\n        async fetchData(url: string): Promise<string> {\r\n            const response = await fetch(url);\r\n            return response.text();\r\n        }\r\n    }\r\n});\r\n```\r\n\r\nIn your Luma script, you call this function normally. The script halts at the\r\nfunction call:\r\n\r\n```luma\r\n// The script pauses here automatically\r\ndata = fetchData(\"https://example.com/data\")\r\n\r\n// This line runs only after the Promise resolves AND the host calls vm.run()\r\nprint(\"Fetched Data: \" + data)\r\n```\r\n\r\n> [!WARNING]\r\n> **The VM is Passive**\r\n> \r\n> When the script invokes an async function, the VM pauses and `vm.run()` returns immediately.\r\n> The VM **does not** automatically resume itself when the Promise resolves. You must continue to call `vm.run()` in your host application's update loop (e.g., every frame).\r\n> * If the Promise is still pending, `vm.run()` does nothing (returns immediately).\r\n> * Once the Promise resolves, the *next* call to `vm.run()` will resume the script where it left off.\r\n\r\n## State Persistence\r\n\r\nLuma allows you to snapshot the entire state of the Virtual Machine. This is\r\ncritical for features like ** Save / Load ** in games or session resumption in\r\ninteractive apps.\r\n\r\n```ts\r\n// Save the full state (variables, stack, instruction pointer)\r\nconst serializedState = vm.save();\r\n\r\n// Restore the state later - the script continues exactly where it left off\r\nvm.load(serializedState);\r\n```\r\n\r\n> [!WARNING]\r\n> **Versioning Warning:** Saved states are tightly coupled to the structure of\r\n> the compiled `Program`. If you recompile the source code, the VM may not be\r\n> able to load a state saved from a previous version.\r\n",
+        "path": "/docs/introduction-to-luma",
         "links": [
             {
-                "text": "Introduction",
-                "link": "/introduction"
+                "text": "Core Philosophy",
+                "link": "/core-philosophy"
             },
+            {
+                "text": "Intuitive Syntax",
+                "link": "/intuitive-syntax"
+            },
+            {
+                "text": "Security & Sandboxing",
+                "link": "/security-sandboxing"
+            },
+            {
+                "text": "Compilation & Binary Serialization",
+                "link": "/compilation-binary-serialization",
+                "children": [
+                    {
+                        "text": "Basic Compilation",
+                        "link": "/compilation-binary-serialization/basic-compilation"
+                    },
+                    {
+                        "text": "Binary Export (Pre-compilation)",
+                        "link": "/compilation-binary-serialization/binary-export-pre-compilation-"
+                    }
+                ]
+            },
+            {
+                "text": "Tick-based Execution & Time Travel",
+                "link": "/tick-based-execution-time-travel"
+            },
+            {
+                "text": "Native Async Interoperability",
+                "link": "/native-async-interoperability"
+            },
+            {
+                "text": "State Persistence",
+                "link": "/state-persistence"
+            }
+        ]
+    },
+    {
+        "title": "Getting Started",
+        "content": "# Getting Started\n\nReady to integrate Luma into your application? This guide will walk you through\ninstallation, a basic usage example, and how to bridge the gap between your\nhost application and Luma scripts.\n\n## Installation\n\nLuma is available as a lightweight package via your favorite package manager.\nRun one of the following commands in your terminal to add it to your project:\n\n**Using npm:**\n\n```bash\nnpm install luma-lang --save\n```\n\n**Using Yarn:**\n\n```bash\nyarn add luma-lang\n```\n\n**Using pnpm:**\n\n```bash\npnpm add luma-lang\n```\n\n## Basic Usage\n\nOnce installed, the core workflow involves two main components: the\n**Compiler** and the **VirtualMachine**. The compiler transforms Luma source\ncode into bytecode, which the VM then executes.\n\nHere is a complete example of running a simple script that calculates the\nFibonacci sequence:\n\n```ts\nimport { Compiler, VirtualMachine } from 'luma-lang';\n\n// 1. Define your Luma script\nconst sourceCode = `\nfn fib(n):\n    if n <= 1: return n\n    return fib(n - 1) + fib(n - 2)\n\nresult = fib(10)\nprint(\"The 10th Fibonacci number is: \" + result)\n`;\n\n// 2. Compile the source code into a Program\nconst program = Compiler.compile(sourceCode);\n\n// 3. Create a VM instance and run the program\nconst vm = new VirtualMachine(program);\nvm.run();\n```\n\n**Output:**\n\n```text\nThe 10th Fibonacci number is: 55\n```\n\n## Budgeting Execution\n\nLuma's Virtual Machine supports a \"tick budget\" system that allows you to\ncontrol how many instructions a script can execute per tick. This is\nparticularly useful in game loops to prevent scripts from blocking the main\nthread.\n\n```ts\nconst vm = new VirtualMachine(program, {\n    budget: 1000, // Limit to 1000 instructions per tick\n});\n\nlet lastTime: number = performance.now();\n\n// Your application/game loop:\nfunction gameLoop() {\n    const currentTime = performance.now();\n    const deltaTime = currentTime - lastTime;\n    lastTime = currentTime;\n    \n    vm.run(deltaTime); // Advance the VM by deltaTime milliseconds.\n    \n    requestAnimationFrame(gameLoop);\n}\n```\n\n## Interoperability\n\nOne of Luma's most powerful features is its design for smooth interoperability\nwith JavaScript and TypeScript. You can expose host functions, classes, objects,\nand variables to the runtime, enabling rich and secure interactions between the\nhost and the script.\n\n### Exposing Host Classes\n\nLuma allows you to map TypeScript classes to Luma classes. To ensure the script\nenvironment remains sandboxed and secure, you must explicitly define which\nproperties and methods are accessible.\n\nConsider a scenario where you want to expose an `Actor` class to your script:\n\n```ts\nimport { Compiler, VirtualMachine } from 'luma-lang';\n\nclass Actor \n{\n    public name: string;\n\n    constructor(name: string = \"Unknown\") {\n        this.name = name;\n    }\n\n    greet() {\n        console.log(`Hello, ${this.name}!`);\n    }\n}\n\nconst source = `\nactor = new Actor()\nactor.name = \"Luma User\"\nactor.greet()\n`;\n\nconst program = Compiler.compile(source);\n\n// Configure the VM to expose the Actor class\nconst vm = new VirtualMachine(program, {\n    classes: {\n        Actor: {\n            constructor: Actor,\n            // Only these members are visible to Luma:\n            methods: [ 'greet' ],\n            properties: [ 'name' ],\n        },\n    },\n});\n\nvm.run();\n```\n\n**Output:**\n\n```text\nHello, Luma User!\n```\n\nBy strictly defining `methods` and `properties` in the configuration object,\nyou define the API surface available to the script while keeping the rest of\nyour host application logic private.\n\n### Inheritance with Host Classes\n\nHost classes are first-class citizens within the Luma type system. Luma scripts\ncan extend host classes to add new functionality while retaining the underlying\nhost logic.\n\n```luma\nclass Player extends Actor:\n    \n    // Luma constructor\n    fn init(name):\n        this.name = name\n\n    fn introduce():\n        print(\"I am \" + this.name)\n        \nplayer = new Player(\"Alice\")\nplayer.introduce()  // Prints \"I am Alice\"\nplayer.greet()      // Calls host method, prints \"Hello, Alice!\"\n\n// Type checks:\nprint(\"Is player an Actor? \" + (player is Actor))  // true\nprint(\"Is player a Player? \" + (player is Player)) // true\n```\n\n### Host Functions and Global Variables\n\nIn addition to classes, you can inject helper functions and global variables\ndirectly into the script's global scope using the `functions` and `variables`\noptions.\n\nThis is particularly useful for environment configuration or logging utilities.\n\n```ts\nconst vm = new VirtualMachine(program, {\n    functions: {\n        // Expose a custom logger\n        print: (...args: any[]) => console.log('[VM]: ', ...args),\n    },\n    variables: {\n        // Expose configuration constants\n        appName: \"LumaApp\",\n        version: \"1.0.0\"\n    },\n});\n```\n\n> [!INFO]\n> Luma has a built-in `print` function that outputs arguments to `console.log`\n> by default. As shown above, you can override this behavior by providing your\n> own implementation (e.g., to log to a file or a UI element) via the\n> `functions` option.\n\nInside the Luma script, these are accessed naturally:\n\n```luma\n// Uses the overridden print function\nprint(\"Welcome to \" + appName + \" v\" + version)\n```\n\n**Output:**\n\n```text\n[VM]: Welcome to LumaApp v1.0.0\n```\n",
+        "path": "/docs/getting-started",
+        "links": [
             {
                 "text": "Installation",
                 "link": "/installation"
@@ -18,21 +60,194 @@ export const docs = [
                 "link": "/basic-usage"
             },
             {
-                "text": "Example usage",
-                "link": "/example-usage"
+                "text": "Budgeting Execution",
+                "link": "/budgeting-execution"
+            },
+            {
+                "text": "Interoperability",
+                "link": "/interoperability",
+                "children": [
+                    {
+                        "text": "Exposing Host Classes",
+                        "link": "/interoperability/exposing-host-classes"
+                    },
+                    {
+                        "text": "Inheritance with Host Classes",
+                        "link": "/interoperability/inheritance-with-host-classes"
+                    },
+                    {
+                        "text": "Host Functions and Global Variables",
+                        "link": "/interoperability/host-functions-and-global-variables"
+                    }
+                ]
             }
-        ],
-        "content": "# Getting started with Luma\n\n## Introduction\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi convallis eu odio nec vehicula. Curabitur nec volutpat lectus, et egestas odio. Phasellus at diam elementum, dignissim elit sit amet, tempus metus. Duis nulla dui, scelerisque in dolor a, rutrum posuere augue. Sed et massa lectus. Integer aliquam leo nec ipsum tincidunt, laoreet hendrerit neque facilisis. Suspendisse sollicitudin augue quis tempus lobortis. Maecenas in dapibus nunc, ac pretium augue. Donec ut laoreet quam, tristique convallis sapien. Nulla imperdiet imperdiet purus. Fusce porta nisi at eros varius volutpat. Etiam sed nunc vel augue scelerisque pulvinar at a ante. Nam fringilla porta leo vitae convallis. Mauris in quam gravida sapien imperdiet molestie. Cras lobortis lacus purus, a commodo lacus posuere a.\n\nMorbi id odio gravida, consectetur urna nec, tincidunt odio. Mauris nec tellus dapibus, semper tellus id, viverra odio. Donec maximus erat ut nisl feugiat, a efficitur arcu placerat. Vestibulum bibendum interdum interdum. Integer tellus sapien, semper non consectetur id, viverra id lacus. In ac augue nisl. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Aenean varius, metus ut sodales viverra, ligula sem sollicitudin lacus, at lacinia tortor quam vitae sem.\n\n## Installation\n\nQuisque ultricies, risus vel dignissim congue, risus magna tempus nunc, varius placerat elit nunc ut eros. Duis pellentesque elit quis efficitur tristique. Sed eleifend consequat tristique. Nunc quis sapien nec orci hendrerit cursus. Cras id augue quis lorem ornare auctor. Donec efficitur pretium est vitae venenatis. Praesent ut tortor non dolor tristique vehicula at sit amet mauris.\n\n```bash\nnpm install luma-lang\n```\n\nNulla auctor ac sem ullamcorper luctus. Cras sollicitudin lorem vel eros ullamcorper, eu eleifend ligula malesuada. Nam in aliquam sapien. Phasellus mi dui, mattis vitae venenatis vel, interdum id ex. Fusce hendrerit, mauris ac pellentesque convallis, tortor nisl sollicitudin est, in mattis lectus justo in purus. Ut in nulla lorem. Vivamus pharetra sed quam ac ultrices. Suspendisse mollis et lacus nec ultricies. Suspendisse id orci ut ligula feugiat mollis. Nullam vitae suscipit nisl. Duis sed quam ex. Suspendisse diam metus, euismod et mi ut, feugiat bibendum lectus.\n\n## Basic Usage\n\nNunc at laoreet erat. Nullam mollis scelerisque sem, et sollicitudin velit tristique hendrerit. Integer rutrum tortor sem. Ut ornare est vel ipsum facilisis, quis feugiat mauris semper. Suspendisse eu lobortis nisl. Sed tincidunt mi et suscipit rhoncus. Aliquam vehicula vehicula nunc, eget finibus augue varius sed. Vestibulum tempor sagittis maximus. Nam ligula ipsum, ullamcorper pulvinar egestas vitae, maximus sit amet orci. In hac habitasse platea dictumst. In fringilla nulla mollis, rhoncus risus et, laoreet felis. Sed tortor eros, laoreet non augue vel, aliquet dictum elit. Sed efficitur, neque in laoreet dignissim, eros dolor pellentesque tellus, vitae fringilla felis neque sed sapien. Morbi lorem nibh, blandit in commodo in, porttitor eget diam. Sed aliquet gravida ante, ut accumsan justo tincidunt in. Donec varius elit ut arcu hendrerit, vel suscipit orci accumsan.\n\nMauris tempus sapien id viverra efficitur. Phasellus sapien lectus, posuere quis nisl sed, interdum ultricies orci. Ut vel pulvinar mi. Proin viverra erat nec purus mattis, sollicitudin finibus justo ultricies. Duis maximus accumsan ligula sit amet viverra. Aliquam dapibus sit amet urna pulvinar pellentesque. Nulla in facilisis lorem. Mauris vitae lorem quis turpis congue sagittis nec sed nunc. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Sed scelerisque felis mattis ligula pharetra, ut euismod arcu venenatis. Curabitur non fringilla felis.\n\n## Example usage\n\n```luma\nfn greet(name):\n    print(\"Hello, \" + name + \"!\")\n    \ngreet(\"World\")\n```\n\nDuis metus dolor, consequat eu tincidunt vel, venenatis vitae dolor. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Fusce molestie pretium pretium. Pellentesque pellentesque libero est, quis porta purus laoreet vitae. In tellus ante, fringilla vitae porta a, vulputate a metus. Nulla quis pharetra enim. Nam feugiat bibendum nisi id egestas. Nulla eget dictum felis. Pellentesque placerat laoreet consectetur. Pellentesque porta urna non tempus pellentesque. Integer consectetur sollicitudin lacus ut cursus. Vestibulum ligula eros, finibus nec volutpat ac, vulputate vel enim.\n\nPhasellus et leo ligula. Nullam commodo dui vitae congue consequat. Aliquam erat volutpat. Suspendisse id metus et ante sodales ornare sit amet eget dolor. In molestie, odio ac tempor condimentum, lacus diam porttitor metus, et pharetra elit tortor in libero. Aenean sollicitudin laoreet augue nec rhoncus. Praesent interdum, diam at posuere posuere, libero felis sodales est, ac luctus tellus erat id arcu. Nullam vehicula vel dui vitae blandit. In non metus magna. Nulla at lectus et sem aliquam fringilla. Sed pharetra neque a ex varius, in fermentum lacus tincidunt. Aliquam bibendum hendrerit justo, non interdum diam sodales ut. Maecenas id lacus finibus, efficitur lacus eu, convallis tellus. Morbi ac consequat lorem.\n\nVestibulum viverra metus nec eleifend consectetur. Aliquam dictum erat sit amet turpis consequat facilisis. Vestibulum orci augue, malesuada et eros et, dignissim commodo eros. Praesent pharetra quam vel velit pulvinar, vitae faucibus massa dignissim. Suspendisse viverra eleifend mi, ut lobortis nulla pulvinar at. Maecenas condimentum orci dolor, ut molestie nunc tempus sit amet. Vivamus nec mattis sapien, quis commodo est. Curabitur sit amet vulputate metus, id efficitur magna. Morbi sit amet euismod lectus, sed tincidunt lectus. Nunc tincidunt massa ac orci consequat, vel porttitor libero consequat. Nulla id ultrices mi. Nunc sit amet commodo quam.\n\nMauris rhoncus mauris magna, eu fringilla dui fringilla ac. Praesent ex tellus, cursus vel commodo at, convallis ornare arcu. Ut pharetra elementum magna, sed tincidunt arcu. Nunc et faucibus quam. Proin quis commodo sem. Nullam vel velit cursus, ultricies elit eget, vehicula mi. Donec ornare id odio eu ultrices. Praesent at magna quis massa laoreet volutpat. Donec tristique convallis urna et lobortis. Nullam mattis lacus et odio iaculis, elementum sagittis urna malesuada. Aliquam vulputate enim velit, congue scelerisque sem faucibus eget. Curabitur dignissim mauris ut risus efficitur, eget malesuada nunc gravida. Pellentesque pellentesque nulla tempus libero vehicula, sed pellentesque purus vulputate. Aliquam nulla risus, maximus eu porttitor et, condimentum nec nisl.\n"
+        ]
     },
     {
-        "path": "/docs/integration",
-        "title": "Integration",
+        "title": "Language Guide",
+        "content": "# Language Guide\n\nThis document serves as a comprehensive guide to the Luma language syntax and\nfeatures. Luma is a dynamic, scripting language designed for easy embedding,\nfeaturing familiar C-style syntax with powerful functional and object-oriented\ncapabilities.\n\n## Variables and Scope\n\nLuma uses dynamic typing. Variables do not need type declarations.\n\n### Assignment and Access\n\nVariables are assigned using the `=` operator. Variables are mutable by default.\n\n```luma\nx = 10\nprint(x) // 10\n\nx = 20\nprint(x) // 20\n```\n\n### Scoping and Shadowing\n\nLuma supports global and local scopes. By default, functions can read and write\nto global variables. To shadow a global variable (create a new variable with\nthe same name in the local scope), use the `local` keyword.\n\n```luma\nx = \"global\"\n\nfn test_scope():\n    print(x)           // Accesses global 'x'\n    local x = \"local\" // Declares a new local 'x'\n    print(x)           // Accesses local 'x'\n\ntest_scope()\nprint(x)               // Global 'x' remains \"global\"\n\n```\n\n## Data Types & Arithmetic\n\nLuma handles integers and floating-point numbers seamlessly, maintaining\nprecision for complex calculations.\n\n### Arithmetic Operators\n\nStandard operators are supported: `+`, `-`, `*`, `/`. Luma follows standard\norder of operations (PEMDAS).\n\n```luma\nprint(10 + 5 * 2)   // 20\nprint((10 + 5) * 2) // 30\n\n```\n\n### Exponents and Modulo\n\nLuma includes built-in operators for exponentiation (`^`) and modulo (`%`).\n\n```luma\nprint(2 ^ 3)   // 8 (Exponent)\nprint(10 % 3)  // 1 (Remainder)\n\n```\n\n> **Note:** Exponents are right-associative (e.g., `2 ^ 3 ^ 2` is `2 ^ 9`, not `8 ^ 2`).\n\n### Boolean Logic\n\nLuma supports `true` and `false`. Comparison operators include `==`, `!=`, `<`,\n`>`, `<=`, `>=`. You can use symbols (`!`, `&&`, `||`) or keywords (`not`,\n`and`, `or`).\n\n```luma\nif 10 > 5 and 5 < 20:\n    print(\"Math works\")\n    \nif \"name\" in player:\n    print(\"Player exists\")\n```\n\n## Strings\n\nStrings in Luma are powerful and support multi-line definitions and complex\ninterpolation.\n\n### Concatenation and Multi-line\n\nStrings can be added using `+` or defined across multiple lines.\n\n```luma\n// Concatenation\nprint(\"Hello, \" + \"World!\")\n\n// Multi-line\nprint(\"\n    Line 1\n    Line 2\n\")\n```\n\n### String Interpolation\n\nYou can embed variables and expressions directly into strings using `{}`\nsyntax.\n\n```luma\nname = \"Alice\"\nprint(\"Hello, {name}!\")\n\na = 5\nb = 10\nprint(\"The sum is {a + b}\")\n```\n\n> [!TIP] To use a literal brace, escape it: `print(\"This is a brace \\{ \")`.\n\n## Arrays\n\nArrays are ordered lists of data. They are zero-indexed and dynamic.\n\n### Declaration and Access\n\n```luma\n// Declare an array of integers.\narr = [10, 20, 30]\n\n// Access by index.\nprint(arr[0]) // 10\n\n// Modify the second element.\narr[1] = 99\n\n// Grab the size.\nprint(arr.length) // 3\nprint(arr.size) // 3 (alias of .length)\n\n// Print the result\nfor item in arr:\n    print(item)\n```\n\n### Array Methods\n\nLuma arrays come with built-in methods for stack and queue operations.\n\n* `push(item)`: Add to end.\n* `pop()`: Remove and return from end.\n* `unshift(item)`: Add to start.\n* `shift()`: Remove and return from start.\n* `slice(start, end)`: Return a sub-array.\n* `splice(start, count)`: Remove items and return them.\n* `reverse()`: Return a reversed copy.\n\n```luma\narr = [1, 2, 3]\narr.push(4)\nlast = arr.pop()\n```\n\n### Array Comprehensions\n\nYou can create new arrays based on existing ones using Python-like\ncomprehension syntax.\n\n```luma\nnums = [1, 2, 3, 4, 5]\nsquared = [x * x for x in nums] \n// Result: [1, 4, 9, 16, 25]\n```\n\n## Objects\n\nObjects are key-value pairs (dictionaries). Keys are strings (implied or\nexplicit).\n\n### Declaration\n\nYou can use standard JSON-style syntax or a simplified syntax without commas.\n\n```luma\n// Standard\nplayer = {\n    name: \"Alice\",\n    score: 100\n}\n\n// Simplified\nenemy = {\n    type: \"Goblin\"\n    hp: 50\n}\n```\n\n### Access and Checking Keys\n\nAccess properties via dot notation (`obj.prop`) or brackets (`obj[\"prop\"]`).\nUse `in` to check for the existence of keys.\n\n```luma\nprint(player.name)\n\nif \"score\" in player:\n    print(\"Player has a score\")\n```\n\n### Object Comprehensions\n\nSimilar to arrays, you can build objects dynamically.\n\n```luma\nnames = [\"alice\", \"bob\"]\n\n// Create a map of name -> length\nlengths = { name: 10 for name in names }\n\n// Result: { \"alice\": 10, \"bob\": 10 }\n```\n\n## Control Flow\n\n### If / Else\n\nStandard conditional logic.\n\n```luma\nif x > 10:\n    print(\"High\")\nelse:\n    print(\"Low\")\n```\n\n### Loops (For, While, Do-While)\n\nLuma supports multiple looping constructs.\n\n**For Loops:** Iterate over arrays or ranges.\n\n```luma\n// Range (0 to 4)\nfor i in 0..5:\n    print(i)\n\n// Array\nfor item in [10, 20, 30]:\n    print(item)\n```\n\n**While Loops:** Run while a condition is true.\n\n```luma\ncount = 0\nwhile count < 5:\n    count = count + 1\n```\n\n**Do-While:** Run at least once.\n\n```luma\ndo:\n    print(\"Run once\")\nwhile false\n```\n\n### Break and Continue\n\nUse `break` to exit a loop early, and `continue` to skip to the next iteration.\n\n## Functions\n\nFunctions are first-class citizens in Luma.\n\n### Declaration and Return\n\nFunctions are defined using the `fn` keyword.\n\n```luma\nfn add(a, b):\n    return a + b\n\nresult = add(5, 10)\n```\n\n### Recursion\n\nFunctions can call themselves.\n\n> [!TIP] Functions are hoisted, so they can be called before declaration.\n\n```luma\nprint(fib(5)) // 5\n\nfn fib(n):\n    if n <= 1: return n\n    return fib(n - 1) + fib(n - 2)\n```\n\n## Object-Oriented Programming\n\nLuma features a robust class system with inheritance, constructors, and\ninteroperability.\n\n### Class Definition & Constructors\n\nYou can define properties and methods. Constructors can be defined in two ways:\n\n1. **Primary Constructor:** Defined in the class header.\n2. **Init Method:** Defined as a method named `init`.\n\n> [!INFO] You must choose **one** style for defining parameters; you cannot mix\n> header parameters with `init` parameters.\n\n```luma\n// Primary Constructor Style\nclass Point(x, y):\n    x = x\n    y = y\n\n// Init Method Style\nclass Rectangle:\n    width = 0\n    height = 0\n\n    fn init(w, h):\n        this.width = w\n        this.height = h\n```\n\n> [!TIP] You can use `this` in primary constructors to avoid the boilerplate\n> of assigning parameters to properties.\n\n```luma\nclass Point(this.x, this.y)\n```\n\n\n### Instantiation\n\nUse the `new` keyword to create instances.\n\n```luma\np = new Point(10, 20)\nprint(p.x)\n\n```\n\n### Inheritance\n\nClasses can extend other classes using `extends`. Use `parent` to access the\nproperties and methods of the parent class.\n\n```luma\nclass Animal(this.name):\n    fn speak():\n        print(\"...\")\n\nclass Dog(name) extends Animal(name):\n    fn speak():\n        parent.speak()\n        print(\"Woof!\")\n```\n\n### Type Checking\n\nUse the `is` operator to check for instance types.\n\n```luma\nd = new Dog(\"Buddy\")\nprint(d is Dog)    // true\nprint(d is Animal) // true\n```\n\n## Modules\n\nCode can be organized into modules. By default, variables, classes and functions\nin a module are **private**. You must use the `public` keyword to export them.\n\n**math_lib.luma:**\n\n```luma\n// Private\nsecret = 42\n\n// Public\npublic pi = 3.14\npublic fn add(a, b):\n    return a + b\n```\n\n**main.luma:**\n\n```luma\nimport \"math_lib\"\n\nprint(math_lib.pi)\nprint(math_lib.add(10, 20))\n// print(math_lib.secret) // Error: Property does not exist\n```\n\n> [!INFO] **Singleton State:** Imported modules behave as singletons. If\n> multiple files import \"market\", they share the exact same instance and state.\n\n### Linking Modules in the VM\n\nThe VirtualMachine requires either a `moduleCache` object or a `resolveModule`\nfunction to locate and load modules during execution.\n\n```ts\nconst cache: Record<string, Program> = {};\n\nconst vm = new VirtualMachine(program, {\n    moduleCache: cache,\n    resolveModule: (name) => {\n        if (! cache[name]) {\n            cache[name] = Compiler.compile(`// module code for ${name}`);\n        }\n        \n        return cache[name];\n    }\n});\n```\n\n> [!TIP] A module can also be a native JavaScript object. This allows you to\n> expose host functionality in a controlled manner. Note that only\n> **variables**, **objects** and **functions** can be exposed this way. Classes\n> must be exposed via the `classes` configuration option.\n \n## Runtime & Security\n\n### Time Control\n\nLuma includes a `wait` keyword to pause execution (useful for game loops or\nthrottling).\n\n```luma\nprint(\"Start\")\nwait(1000) // Pauses for 1000ms\nprint(\"End\")\n```\n\n> [!INFO] When invoking `vm.run()`, you can pass a _delta time_ value (in\n> milliseconds) to simulate time passage for `wait` calls.\n\n```ts\nfunction gameLoop(deltaTime: number) {\n    vm.run(deltaTime);\n}\n```\n\n### Sandboxing\n\nLuma is designed to be secure. The VM actively prevents access to the underlying\nJavaScript host environment:\n\n* **No Prototype Access:** `__proto__` and `prototype` access is forbidden.\n* **No Constructor Escalation:** You cannot access `.constructor` to break out of the sandbox.\n* **Frozen Globals:** Scripts cannot add new global variables to the host sandbox, ensuring isolation.\n",
+        "path": "/docs/language-guide",
         "links": [
             {
-                "text": "Integrating Luma",
-                "link": "/integrating-luma"
+                "text": "Variables and Scope",
+                "link": "/variables-and-scope",
+                "children": [
+                    {
+                        "text": "Assignment and Access",
+                        "link": "/variables-and-scope/assignment-and-access"
+                    },
+                    {
+                        "text": "Scoping and Shadowing",
+                        "link": "/variables-and-scope/scoping-and-shadowing"
+                    }
+                ]
+            },
+            {
+                "text": "Data Types & Arithmetic",
+                "link": "/data-types-arithmetic",
+                "children": [
+                    {
+                        "text": "Arithmetic Operators",
+                        "link": "/data-types-arithmetic/arithmetic-operators"
+                    },
+                    {
+                        "text": "Exponents and Modulo",
+                        "link": "/data-types-arithmetic/exponents-and-modulo"
+                    },
+                    {
+                        "text": "Boolean Logic",
+                        "link": "/data-types-arithmetic/boolean-logic"
+                    }
+                ]
+            },
+            {
+                "text": "Strings",
+                "link": "/strings",
+                "children": [
+                    {
+                        "text": "Concatenation and Multi-line",
+                        "link": "/strings/concatenation-and-multi-line"
+                    },
+                    {
+                        "text": "String Interpolation",
+                        "link": "/strings/string-interpolation"
+                    }
+                ]
+            },
+            {
+                "text": "Arrays",
+                "link": "/arrays",
+                "children": [
+                    {
+                        "text": "Declaration and Access",
+                        "link": "/arrays/declaration-and-access"
+                    },
+                    {
+                        "text": "Array Methods",
+                        "link": "/arrays/array-methods"
+                    },
+                    {
+                        "text": "Array Comprehensions",
+                        "link": "/arrays/array-comprehensions"
+                    }
+                ]
+            },
+            {
+                "text": "Objects",
+                "link": "/objects",
+                "children": [
+                    {
+                        "text": "Declaration",
+                        "link": "/objects/declaration"
+                    },
+                    {
+                        "text": "Access and Checking Keys",
+                        "link": "/objects/access-and-checking-keys"
+                    },
+                    {
+                        "text": "Object Comprehensions",
+                        "link": "/objects/object-comprehensions"
+                    }
+                ]
+            },
+            {
+                "text": "Control Flow",
+                "link": "/control-flow",
+                "children": [
+                    {
+                        "text": "If / Else",
+                        "link": "/control-flow/if-else"
+                    },
+                    {
+                        "text": "Loops (For, While, Do-While)",
+                        "link": "/control-flow/loops-for-while-do-while-"
+                    },
+                    {
+                        "text": "Break and Continue",
+                        "link": "/control-flow/break-and-continue"
+                    }
+                ]
+            },
+            {
+                "text": "Functions",
+                "link": "/functions",
+                "children": [
+                    {
+                        "text": "Declaration and Return",
+                        "link": "/functions/declaration-and-return"
+                    },
+                    {
+                        "text": "Recursion",
+                        "link": "/functions/recursion"
+                    }
+                ]
+            },
+            {
+                "text": "Object-Oriented Programming",
+                "link": "/object-oriented-programming",
+                "children": [
+                    {
+                        "text": "Class Definition & Constructors",
+                        "link": "/object-oriented-programming/class-definition-constructors"
+                    },
+                    {
+                        "text": "Instantiation",
+                        "link": "/object-oriented-programming/instantiation"
+                    },
+                    {
+                        "text": "Inheritance",
+                        "link": "/object-oriented-programming/inheritance"
+                    },
+                    {
+                        "text": "Type Checking",
+                        "link": "/object-oriented-programming/type-checking"
+                    }
+                ]
+            },
+            {
+                "text": "Modules",
+                "link": "/modules",
+                "children": [
+                    {
+                        "text": "Linking Modules in the VM",
+                        "link": "/modules/linking-modules-in-the-vm"
+                    }
+                ]
+            },
+            {
+                "text": "Runtime & Security",
+                "link": "/runtime-security",
+                "children": [
+                    {
+                        "text": "Time Control",
+                        "link": "/runtime-security/time-control"
+                    },
+                    {
+                        "text": "Sandboxing",
+                        "link": "/runtime-security/sandboxing"
+                    }
+                ]
             }
-        ],
-        "content": "# Integration\n\n## Integrating Luma\n\nTODO.\n"
+        ]
     }
 ];

@@ -1,4 +1,7 @@
+import { Inject }                                  from '@/Framework/DI';
+import { Router }                                  from '@/Framework/Router';
 import {IDisposableComponent, IWebComponent, VDom} from '@/IWebComponent';
+import { EventSubscriber }                         from '@byteshift/events';
 import {Component, Element, h, Host, Prop, State}  from '@stencil/core';
 
 void h;
@@ -17,16 +20,24 @@ export class LumaPage implements IWebComponent, IDisposableComponent
     @State() private items: PageNavigationItem[] = [];
     @State() private navOpen: boolean            = false;
 
+    @Inject private readonly router: Router;
+
+    private routeEvent: EventSubscriber;
+
     /**
      * @inheritDoc
      */
     public connectedCallback(): void
     {
+        this.routeEvent = this.router.on('changed', () => this.navOpen = false);
+
         const nav: HTMLLumaPageNavElement | null = this.$host.querySelector('luma-page-nav');
 
         if (nav) {
             this.items = nav.items;
-            nav.addEventListener('itemsChanged', evt => this.items = evt.detail);
+            nav.addEventListener('itemsChanged', evt => {
+                this.items = evt.detail;
+            });
         }
     }
 
@@ -35,6 +46,7 @@ export class LumaPage implements IWebComponent, IDisposableComponent
      */
     public disconnectedCallback(): void
     {
+        this.routeEvent?.unsubscribe();
     }
 
     public render(): VDom
@@ -53,12 +65,12 @@ export class LumaPage implements IWebComponent, IDisposableComponent
                                     <i class={`fa ${this.navOpen ? 'fa-chevron-up' : 'fa-chevron-down'}`}/>
                                 </button>
                             )}
-                            <h1>
+                            <h1 class="comfortaa">
                                 {this.navOpen ? 'Navigation' : this.label}
                             </h1>
                         </section>
                         <section>
-                            <h1>
+                            <h1 class="comfortaa">
                                 {this.navOpen ? 'Navigation' : this.label}
                             </h1>
                         </section>
@@ -91,17 +103,17 @@ export class LumaPage implements IWebComponent, IDisposableComponent
             switch (item.type) {
                 case 'link':
                     return (
-                        <a href={item.href} class={{'nav-link': true, active: item.active}}>
+                        <luma-link href={item.href} class={{'nav-link': true, active: item.active}}>
                             {item.name}
-                        </a>
+                        </luma-link>
                     );
                 case 'group':
                     return (
                         <div class="nav-group">
                             {item.href ? (
-                                <a href={item.href} class={{'nav-group-label': true, active: item.active}}>
+                                <luma-link href={item.href} class={{'nav-group-label': true, active: item.active}}>
                                     {item.name}
-                                </a>
+                                </luma-link>
                             ) : (
                                 <div class={{'nav-group-label': true, active: item.active}}>
                                     {item.name}

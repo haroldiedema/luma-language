@@ -96,11 +96,16 @@ function collectDocs(dir: string, baseDir: string, docs: any[]): any[]
             .replace(/^(\d+)\./, '')
             .replace(/'.md$/, '');
 
+        const title = extractTitleFromMarkdown(content);
+        if (! title) {
+            continue; // Skip files without a title.
+        }
+
         docs.push({
-            path:  '/docs/' + extractTitleFromMarkdown(content)!.replace(/\W+/g, '-').toLowerCase(),
-            title: extractTitleFromMarkdown(content) || baseName,
-            links: extractHeaderLinksFromMarkdown(content),
+            title,
             content,
+            path:  '/docs/' + title.replace(/\W+/g, '-').toLowerCase(),
+            links: extractHeaderLinksFromMarkdown(content),
         });
     }
 

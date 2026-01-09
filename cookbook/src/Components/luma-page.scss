@@ -1,62 +1,68 @@
 @use '../shared' as *;
 
-$headerHeight : 40px;
+$headerHeight: 40px;
 
 luma-page {
     @include flex(column, stretch, stretch);
-    position   : relative;
-    min-height : 0;
-    flex-grow  : 1;
+    position: relative;
+    min-height: 0;
+    flex-grow: 1;
 
     header.page-header {
-        display    : block;
-        height     : $headerHeight;
-        background : var(--bg-2);
+        display: block;
+        height: $headerHeight;
+        background: var(--bg-2);
 
         & > div.container {
             @include flex(row, space-between, center);
-            height : 100%;
+            height: 100%;
 
             & > section {
                 @include flex(row, flex-start, center);
-                gap : 16px;
+                gap: 16px;
 
                 & > button#mobile-nav-button {
                     @include flex(row, center, center);
-                    background : transparent;
-                    color      : var(--fg-0);
-                    border     : none;
-                    font-size  : 24px;
-                    cursor     : pointer;
-                    padding    : 8px 0;
-                    display    : none;
+                    background: transparent;
+                    color: var(--fg-0);
+                    border: none;
+                    font-size: 24px;
+                    cursor: pointer;
+                    padding: 8px 0;
+                    display: none;
 
                     &.active {
-                        color : var(--fg-2);
+                        color: var(--fg-2);
                     }
 
-                    @media (max-width : 800px) {
-                        display : flex;
+                    @media (max-width: 800px) {
+                        display: flex;
                     }
                 }
 
                 & > h1 {
-                    display     : none;
-                    font-size   : 1.5rem;
-                    font-weight : 600;
-                    color       : var(--fg-0);
+                    display: none;
+                    font-weight: 600;
+                    color: var(--fg-2);
+                    text-shadow: 1px 1px var(--bg-0);
+                    overflow: hidden;
+                    white-space: nowrap;
+                    text-overflow: ellipsis;
+                    flex: 1;
+                    font-size: 18px;
 
-                    @media (max-width : 800px) {
-                        display : block;
+                    @media (max-width: 800px) {
+                        display: block;
                     }
                 }
 
                 &:last-child {
                     h1 {
                         display: block;
+                        font-size: 20px;
 
-                        @media (max-width : 800px) {
-                            display : none;
+                        @media (max-width: 800px) {
+                            display: none;
                         }
                     }
                 }
@@ -66,110 +72,127 @@ luma-page {
 
     main.page-body {
         @include flex(column, stretch, stretch);
-        flex       : 1;
-        overflow-y : scroll;
-        min-height : 0;
-        background : var(--bg-1);
+        flex: 1;
+        overflow-y: scroll;
+        min-height: 0;
+        background: var(--bg-1);
 
         & > .container {
             @include flex(row, flex-start, flex-start);
-            position : relative;
-            gap      : 20px;
+            position: relative;
+            gap: 20px;
 
-            @media (max-width : 800px) {
-                gap     : 0;
-                padding : 0;
+            @media (max-width: 800px) {
+                gap: 0;
+                padding: 0;
             }
 
             & > nav.page-nav {
                 @include flex(column, stretch, flex-start);
-                position     : sticky;
-                top          : 0;
-                width        : 250px;
-                padding      : 4px 0 4px 8px;
-                overflow-y   : auto;
-                min-height   : 0;
-                border-right : 1px solid var(--border-0);
-                height       : calc(100vh - #{$headerHeight} - 80px);
+                position: sticky;
+                top: 0;
+                width: 250px;
+                padding: 4px 0 4px 8px;
+                overflow-y: auto;
+                min-height: 0;
+                border-right: 1px solid var(--border-0);
+                height: calc(100vh - #{$headerHeight} - 80px);
 
-                @media (max-width : 800px) {
-                    width : 100%;
+                @media (max-width: 800px) {
+                    width: 100%;
                 }
 
                 &:not(.show) {
-                    @media (max-width : 800px) {
-                        display : none;
+                    @media (max-width: 800px) {
+                        display: none;
                     }
                 }
 
                 & * {
-                    display  : block;
-                    width    : 100%;
-                    position : relative;
-                    color    : var(--fg-1);
+                    display: block;
+                    width: 100%;
+                    position: relative;
+                    color: var(--fg-1);
                 }
 
                 div.nav-group {
                     @include flex(column, flex-start, stretch);
-                    width   : 100%;
-                    padding : 0;
+                    width: 100%;
+                    padding: 0;
                 }
 
                 & > div.nav-group {
                     & > .nav-group-label {
-                        font-weight    : 600;
-                        margin-top     : 8px;
-                        margin-bottom  : 4px;
-                        text-transform : uppercase;
-                        font-size      : 0.9rem;
-                        color          : var(--fg-0);
+                        font-weight: 600;
+                        margin-top: 8px;
+                        margin-bottom: 4px;
+                        text-transform: uppercase;
+                        font-size: 0.9rem;
+                        color: var(--fg-0);
                     }
 
                     & .nav-group-items {
                         @include flex(column, flex-start, stretch);
-                        width          : 100%;
-                        padding-left   : 16px;
-                        padding-bottom : 16px;
+                        width: 100%;
+                        padding-left: 16px;
+                        padding-bottom: 16px;
 
                         a {
-                            padding : 4px 0;
+                            padding: 4px 0;
                         }
                     }
                 }
 
-                a {
-                    text-decoration : none;
-                    border-right    : 4px solid transparent;
+                luma-link {
+                    a {
+                        text-decoration: none;
+                        border-right: 4px solid transparent;
+                        transition: 0.15s ease-in-out;
+                    }
 
                     &:hover {
-                        border-right : 4px solid var(--border-0);
-                        color        : var(--fg-0);
+                        border-right: 4px solid var(--border-0);
+                        a { color: var(--fg-3); }
                     }
 
                     &.nav-link.active {
-                        font-weight  : 600;
-                        border-right : 4px solid var(--border-3);
-                        color        : var(--fg-3);
+                        font-weight: 600;
+                        border-right: 4px solid var(--border-3);
+                        color: var(--fg-3);
+
+                        & > a {
+                            color: var(--fg-3);
+                            text-shadow: 0 0 2px var(--bg-0), 0 0 16px rgba(255, 255, 255, .5);
+                        }
                     }
 
                     &.nav-group-label.active {
-                        font-weight : 600 !important;
-                        color       : var(--fg-2) !important;
+                        font-weight: 600 !important;
+                        color: var(--fg-2) !important;
+
+                        & > a {
+                            color: var(--fg-3) !important;
+                            text-shadow: 0 0 2px var(--bg-0), 0 0 8px rgba(255, 255, 255, .5);
+                        }
                     }
                 }
             }
 
             & > section.page-content {
-                flex    : 1;
-                padding : 10px;
+                flex: 1;
+                padding: 10px 0;
+
+                @media (max-width: 800px) {
+                    padding: 10px 16px;
+                }
 
                 p {
-                    margin-top  : 0;
-                    padding-top : 0;
+                    margin-top: 0;
+                    padding-top: 0;
                 }
 
                 &.hide {
-                    display : none;
+                    display: none;
                 }
             }
         }

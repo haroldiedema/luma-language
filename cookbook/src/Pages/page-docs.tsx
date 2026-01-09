@@ -20,15 +20,36 @@ export class PageDocs implements IWebComponent, IComponentWillLoad
     @State() private section: string[]           = [];
     @State() private title: string               = 'Documentation';
 
+    /**
+     * @inheritDoc
+     */
     public async componentWillLoad(): Promise<void>
     {
+        this.router.on('changed', () => this.onRouteChanged());
         this.onRouteChanged();
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public render(): VDom
+    {
+        return (
+            <luma-page label={this.title}>
+                <luma-page-nav>
+                    {this.links.map(link => this.renderNavLink(link))}
+                </luma-page-nav>
+                <luma-page-content>
+                    <luma-doc-renderer page={this.page} section={this.section.join('/')}/>
+                </luma-page-content>
+            </luma-page>
+        );
     }
 
     private onRouteChanged(): void
     {
         const route = this.router.currentRoute;
-        if (!route) {
+        if (!route || route.id !== 'docs') {
             return;
         }
 
@@ -48,23 +69,6 @@ export class PageDocs implements IWebComponent, IComponentWillLoad
         this.section = [section, sub1, sub2, sub3].filter(s => s);
 
         this.generateDocs();
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public render(): VDom
-    {
-        return (
-            <luma-page label={this.title}>
-                <luma-page-nav>
-                    {this.links.map(link => this.renderNavLink(link))}
-                </luma-page-nav>
-                <luma-page-content>
-                    <luma-doc-renderer page={this.page} section={this.section.join('/')}/>
-                </luma-page-content>
-            </luma-page>
-        );
     }
 
     private generateDocs(): void

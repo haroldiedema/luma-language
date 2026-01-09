@@ -1,50 +1,186 @@
 @use '../shared' as *;
 
-:host {
-    @include flex(column, flex-start, stretch);
-    position   : relative;
-    min-height : 0;
-    flex-grow  : 1;
-}
+main#doc-content {
+    /* 1. Keep the Grid fix to constrain the width */
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
 
-.luma-function { color : var(--fg-function); }
+    pre {
+        /* 2. THE FRAME (Static) */
+        display: block;
+        position: relative;
+        max-width: 100%;
 
-.luma-identifier { color : var(--fg-identifier); }
+        /* Visuals */
+        background: var(--bg-2);
+        border-radius: 5px;
+        margin-bottom: 1rem;
+        border: 1px solid var(--border-1);
+        box-shadow: 0 1px 2px var(--bg-0);
 
-.luma-keyword { color : var(--fg-keyword); }
+        /* The Glow Effect (Now perfectly stable) */
+        &:after {
+            content: '';
+            position: absolute;
+            top: -1px;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(to right, transparent 50%, var(--fg-3) 75%, transparent 100%);
+            z-index: 2; /* Ensure it sits on top of the code */
+            pointer-events: none; /* Let clicks pass through to the text */
+        }
 
-.luma-string { color : var(--fg-string); }
+        code {
+            /* 3. THE CONTENT (Scrollable) */
+            display: block;
+            overflow-x: auto; /* Scrollbar lives here */
 
-.luma-number { color : var(--fg-number); }
+            width: 100%;
+            background: none;
+            padding: 10px;
+            border-radius: 0;
+            text-shadow: none;
+            font-size: 14px;
+            color: var(--fg-3);
+        }
+    }
 
-.luma-comment { color : var(--fg-comment); }
+    .function {
+        color: var(--fg-function);
+    }
 
-.luma-operator { color : var(--fg-operator); }
+    .identifier {
+        color: var(--fg-identifier);
+    }
 
-.luma-punctuation { color : var(--fg-punctuation); }
+    .keyword {
+        color: var(--fg-keyword);
+    }
 
-pre {
-    background    : var(--bg-2);
-    padding       : 15px;
-    border-radius : 5px;
-    overflow-x    : auto;
-    margin-bottom : 1rem;
-}
+    .string {
+        color: var(--fg-string);
+    }
 
-h1, h2, h3, h4, h5, h6 {
-    margin-top    : 0;
-    margin-bottom : 0.5rem;
-    padding-top   : 0;
-    font-weight   : 600;
-    line-height   : 1.2;
-}
+    .number {
+        color: var(--fg-number);
+    }
 
-h1 {
-    display: none;
-}
+    .comment {
+        color: var(--fg-comment);
+    }
 
-h2 {
-    border-bottom: 1px solid var(--border-1);
-    padding-bottom: 0.2rem;
-    margin-bottom: 15px;
+    .operator {
+        color: var(--fg-operator);
+    }
+
+    .punctuation {
+        color: var(--fg-punctuation);
+    }
+
+    blockquote.rich-block {
+        @include flex(row, flex-start, flex-start);
+        gap: 16px;
+        margin: 20px 0;
+        padding: 10px;
+        background: var(--bg-2);
+        border-radius: 8px;
+
+        &.note {
+            background-color: var(--bg-note);
+        }
+
+        &.tip {
+            background-color: var(--bg-tip);
+        }
+
+        &.info {
+            background-color: var(--bg-info);
+        }
+
+        &.warning {
+            background-color: var(--bg-warning);
+        }
+
+        &.caution {
+            background-color: var(--bg-caution);
+        }
+
+        & > .icon {
+            color: var(--fg-3);
+            text-shadow: 0 0 4px var(--bg-0);
+            font-size: 24px;
+            line-height: 1;
+            flex-shrink: 0;
+            padding-top: 6px;
+        }
+
+        & > .text {
+            @include flex(column, flex-start, stretch);
+            margin: 0;
+            padding: 0;
+            color: var(--fg-3);
+            text-shadow: 1px 1px var(--bg-0);
+        }
+    }
+
+    p {
+        margin-top: 0;
+        margin-bottom: 1rem;
+        padding-top: 0;
+        line-height: 1.6;
+    }
+
+    code {
+        background: var(--bg-3);
+        padding: 4px 8px;
+        border-radius: 4px;
+        text-shadow: 1px 1px var(--bg-0);
+        line-height: 1;
+        font-size: 14px;
+        color: var(--fg-function);
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+        margin-top: 0;
+        margin-bottom: 0.5rem;
+        padding-top: 0;
+        font-weight: 600;
+        line-height: 1.2;
+    }
+
+    h1 {
+        display: none;
+    }
+
+    h2 {
+        display: block;
+        position: relative;
+        padding-bottom: 0.2rem;
+        margin-bottom: 15px;
+
+        &:not(:first-of-type) {
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 1px solid var(--border-1);
+
+            &:after {
+                content: '';
+                position: absolute;
+                top: -1px;
+                left: 0;
+                right: 0;
+                height: 1px;
+                background: linear-gradient(to right, transparent 5%, var(--fg-3) 35%, transparent 60%);
+            }
+        }
+    }
+
+    h3 {
+        margin-top: 20px;
+    }
+
+    ul > li {
+        margin-bottom: 16px;
+    }
 }

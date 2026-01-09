@@ -1,8 +1,17 @@
 import 'reflect-metadata';
-import {ClassConstructor} from './ClassConstructor';
-import {ServiceContainer} from './ServiceContainer';
+import { ClassConstructor } from './ClassConstructor';
+import { ServiceContainer } from './ServiceContainer';
 
-export function Service(target: ClassConstructor)
+export function Service(id: string)
 {
-    ServiceContainer.register(target);
+    return function (target: ClassConstructor) {
+        Object.defineProperty(target, '__id__', {
+            value:        id,
+            writable:     false,
+            enumerable:   false,
+            configurable: false,
+        });
+
+        ServiceContainer.register(id, target);
+    };
 }

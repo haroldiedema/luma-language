@@ -1,10 +1,9 @@
-import {Service}                       from '@/Framework/DI';
-import {Route}                         from '@/Framework/Router/Route';
-import {RouteOptions}                  from '@/Framework/Router/RouteOptions';
-import {EventEmitter, EventSubscriber} from '@byteshift/events';
-import {Listen}                        from '@stencil/core';
+import { Service }                       from '@/Framework/DI';
+import { Route }                         from '@/Framework/Router/Route';
+import { RouteOptions }                  from '@/Framework/Router/RouteOptions';
+import { EventEmitter, EventSubscriber } from '@byteshift/events';
 
-@Service
+@Service('router')
 export class Router extends EventEmitter
 {
     private readonly _routes: Map<string, Route> = new Map();
@@ -14,6 +13,8 @@ export class Router extends EventEmitter
     constructor()
     {
         super();
+
+        window.addEventListener('popstate', this.onPopState.bind(this));
     }
 
     public get routes(): Route[]
@@ -43,7 +44,7 @@ export class Router extends EventEmitter
             return;
         }
 
-        this.onPopState();
+        this.onPopState(null);
     }
 
     /**
@@ -87,15 +88,16 @@ export class Router extends EventEmitter
         return undefined;
     }
 
-    @Listen('popstate', {target: 'window'})
-    private onPopState(): void
+    private onPopState(ev?: Event): void
     {
-        const path = window.location.pathname;
+        const path: string         = window.location.pathname;
+        const state: any           = (ev as PopStateEvent)?.state;
+        const isTransient: boolean = state?.transient === true;
 
         for (const route of this._routes.values()) {
             if (route.matches(path)) {
                 this._currentRoute = route;
-                this.emit('changed', route);
+                this.publish(route, isTransient);
                 return;
             }
         }
@@ -103,20 +105,25 @@ export class Router extends EventEmitter
         const defaultRoute = this.defaultRoute;
         if (path === '/' && defaultRoute) {
             this._currentRoute = defaultRoute;
-            return this.emit('changed', defaultRoute);
+            return this.publish(defaultRoute);
         }
 
         const notFoundRoute = this.notFoundRoute;
         if (notFoundRoute) {
             this._currentRoute = notFoundRoute;
-            return this.emit('changed', notFoundRoute);
+            return this.publish(notFoundRoute);
         }
 
         console.warn(`No route found for path: ${path} and no 404-route set.`);
+    }
+
+    private publish(route: Route, isTransient: boolean = false): void
+    {
+        this.emit('changed', route, isTransient);
     }
 }
 
 export interface Router
 {
-    on(event: 'changed', listener: (route: Route) => any): EventSubscriber;
+    on(event: 'changed', listener: (route: Route, isTransient?: boolean) => any): EventSubscriber;
 }

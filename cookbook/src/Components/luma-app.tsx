@@ -39,12 +39,14 @@ export class LumaApp implements IWebComponent, IComponentWillLoad
                 <nav id="main-nav">
                     <div class="container">
                         <section>
-                            <div class="logo-icon"/>
-                            <div class="logo-name comfortaa">Luma</div>
+                            <a class="logo" href="/">
+                                <div class="logo-icon"/>
+                                <div class="logo-name comfortaa">Luma</div>
+                            </a>
                         </section>
                         <section>
                             {this.router.routes.filter(route => !route.is404).map(route => (
-                                <a
+                                <luma-link
                                     href={route.href}
                                     class={{
                                         link:   true,
@@ -52,7 +54,7 @@ export class LumaApp implements IWebComponent, IComponentWillLoad
                                     }}
                                 >
                                     {route.name}
-                                </a>
+                                </luma-link>
                             ))}
                             <div class="divider"/>
                             <a class="link" href="https://www.npmjs.com/package/luma-lang" target="_blank">

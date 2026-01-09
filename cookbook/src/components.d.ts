@@ -18,6 +18,12 @@ export namespace Components {
          */
         "section": string;
     }
+    interface LumaLink {
+        /**
+          * @default '/'
+         */
+        "href": string;
+    }
     interface LumaPage {
         /**
           * @default 'Untitled Page'
@@ -55,6 +61,12 @@ declare global {
     var HTMLLumaDocRendererElement: {
         prototype: HTMLLumaDocRendererElement;
         new (): HTMLLumaDocRendererElement;
+    };
+    interface HTMLLumaLinkElement extends Components.LumaLink, HTMLStencilElement {
+    }
+    var HTMLLumaLinkElement: {
+        prototype: HTMLLumaLinkElement;
+        new (): HTMLLumaLinkElement;
     };
     interface HTMLLumaPageElement extends Components.LumaPage, HTMLStencilElement {
     }
@@ -106,6 +118,7 @@ declare global {
     interface HTMLElementTagNameMap {
         "luma-app": HTMLLumaAppElement;
         "luma-doc-renderer": HTMLLumaDocRendererElement;
+        "luma-link": HTMLLumaLinkElement;
         "luma-page": HTMLLumaPageElement;
         "luma-page-content": HTMLLumaPageContentElement;
         "luma-page-nav": HTMLLumaPageNavElement;
@@ -126,6 +139,12 @@ declare namespace LocalJSX {
           * @default ''
          */
         "section"?: string;
+    }
+    interface LumaLink {
+        /**
+          * @default '/'
+         */
+        "href"?: string;
     }
     interface LumaPage {
         /**
@@ -151,6 +170,7 @@ declare namespace LocalJSX {
     interface IntrinsicElements {
         "luma-app": LumaApp;
         "luma-doc-renderer": LumaDocRenderer;
+        "luma-link": LumaLink;
         "luma-page": LumaPage;
         "luma-page-content": LumaPageContent;
         "luma-page-nav": LumaPageNav;
@@ -165,6 +185,7 @@ declare module "@stencil/core" {
         interface IntrinsicElements {
             "luma-app": LocalJSX.LumaApp & JSXBase.HTMLAttributes<HTMLLumaAppElement>;
             "luma-doc-renderer": LocalJSX.LumaDocRenderer & JSXBase.HTMLAttributes<HTMLLumaDocRendererElement>;
+            "luma-link": LocalJSX.LumaLink & JSXBase.HTMLAttributes<HTMLLumaLinkElement>;
             "luma-page": LocalJSX.LumaPage & JSXBase.HTMLAttributes<HTMLLumaPageElement>;
             "luma-page-content": LocalJSX.LumaPageContent & JSXBase.HTMLAttributes<HTMLLumaPageContentElement>;
             "luma-page-nav": LocalJSX.LumaPageNav & JSXBase.HTMLAttributes<HTMLLumaPageNavElement>;

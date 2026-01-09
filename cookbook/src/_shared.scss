@@ -27,7 +27,12 @@
     --border-2       : rgba(255, 255, 255, 0.33);
     --border-3       : rgba(255, 255, 255, 0.55);
 
-    scrollbar-color  : var(--fg-0) var(--bg-3);
+    --bg-info        : #293462;
+    --bg-tip         : #6a994e;
+    --bg-warning     : #936217;
+    --bg-caution     : #e94560;
+
+    scrollbar-color  : var(--fg-0) var(--bg-1);
 }
 
 .comfortaa {

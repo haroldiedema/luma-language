@@ -1,0 +1,86 @@
+@use "../shared" as *;
+
+luma-dropdown {
+    position: relative;
+
+    & > button {
+        @include flex(row, space-between, center);
+        gap: 24px;
+        height: 28px;
+        background: var(--bg-2);
+        border: 1px solid transparent;
+        border-radius: 4px;
+        color: var(--fg-2);
+        cursor: pointer;
+
+        &:hover {
+            border-color: var(--border-0);
+        }
+
+        & > .wrap {
+            @include flex(row, center, center);
+            gap: 8px;
+        }
+    }
+
+    & > div.menu {
+        @include flex(column, stretch, flex-start);
+        position: absolute;
+        top: 28px;
+        left: 0;
+        background: rgba(35, 35, 35, 0.65);
+        backdrop-filter: blur(5px);
+        border: 1px solid var(--border-0);
+        border-radius: 8px;
+        box-shadow: 0 2px 16px rgba(0, 0, 0, 0.35);
+        z-index: 10;
+        padding: 4px;
+        display: none;
+        min-width: 0;
+
+        &.open {
+            display: flex;
+        }
+
+        & > .divider {
+            width: 100%;
+            height: 1px;
+            background-color: var(--border-0);
+            margin: 4px 0;
+        }
+
+        & > .item {
+            @include flex(row, flex-start, center);
+            position: relative;
+            flex: 1;
+            gap: 12px;
+            padding: 8px 12px;
+            cursor: pointer;
+            color: var(--fg-2);
+            background: transparent;
+            border: 0;
+            border-radius: 5px;
+            width: 100%;
+
+            & > .label {
+                white-space: nowrap;
+            }
+
+            &:hover {
+                background: var(--bg-1);
+            }
+
+            &.selected::after {
+                content: '';
+                position: absolute;
+                top: 4px;
+                bottom: 4px;
+                left: 0;
+                width: 4px;
+                height: calc(100% - 8px);
+                background: var(--bg-3);
+                border-radius: 4px 0 0 4px;
+            }
+        }
+    }
+}

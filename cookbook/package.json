@@ -19,6 +19,7 @@
     "@stencil/sass": "^3.2.2",
     "marked": "^17.0.1",
     "marked-highlight": "^2.2.3",
+    "monaco-editor": "^0.55.1",
     "reflect-metadata": "^0.2.2"
   }
 }

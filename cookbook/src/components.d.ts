@@ -18,6 +18,24 @@ export namespace Components {
          */
         "section": string;
     }
+    interface LumaDropdown {
+        /**
+          * @default []
+         */
+        "items": any[];
+        /**
+          * @default 'No options available'
+         */
+        "noOptionsText": string;
+        /**
+          * @default 'Select an option'
+         */
+        "placeholder": string;
+        /**
+          * @default ''
+         */
+        "value": string;
+    }
     interface LumaLink {
         /**
           * @default '/'
@@ -29,6 +47,10 @@ export namespace Components {
           * @default 'Untitled Page'
          */
         "label": string;
+        /**
+          * @default false
+         */
+        "noScroll": boolean;
     }
     interface LumaPageContent {
     }
@@ -44,6 +66,10 @@ export namespace Components {
     }
     interface PagePlayground {
     }
+}
+export interface LumaDropdownCustomEvent<T> extends CustomEvent<T> {
+    detail: T;
+    target: HTMLLumaDropdownElement;
 }
 export interface LumaPageNavCustomEvent<T> extends CustomEvent<T> {
     detail: T;
@@ -61,6 +87,23 @@ declare global {
     var HTMLLumaDocRendererElement: {
         prototype: HTMLLumaDocRendererElement;
         new (): HTMLLumaDocRendererElement;
+    };
+    interface HTMLLumaDropdownElementEventMap {
+        "itemChanged": string;
+    }
+    interface HTMLLumaDropdownElement extends Components.LumaDropdown, HTMLStencilElement {
+        addEventListener<K extends keyof HTMLLumaDropdownElementEventMap>(type: K, listener: (this: HTMLLumaDropdownElement, ev: LumaDropdownCustomEvent<HTMLLumaDropdownElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLLumaDropdownElementEventMap>(type: K, listener: (this: HTMLLumaDropdownElement, ev: LumaDropdownCustomEvent<HTMLLumaDropdownElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
+    }
+    var HTMLLumaDropdownElement: {
+        prototype: HTMLLumaDropdownElement;
+        new (): HTMLLumaDropdownElement;
     };
     interface HTMLLumaLinkElement extends Components.LumaLink, HTMLStencilElement {
     }
@@ -118,6 +161,7 @@ declare global {
     interface HTMLElementTagNameMap {
         "luma-app": HTMLLumaAppElement;
         "luma-doc-renderer": HTMLLumaDocRendererElement;
+        "luma-dropdown": HTMLLumaDropdownElement;
         "luma-link": HTMLLumaLinkElement;
         "luma-page": HTMLLumaPageElement;
         "luma-page-content": HTMLLumaPageContentElement;
@@ -140,6 +184,25 @@ declare namespace LocalJSX {
          */
         "section"?: string;
     }
+    interface LumaDropdown {
+        /**
+          * @default []
+         */
+        "items"?: any[];
+        /**
+          * @default 'No options available'
+         */
+        "noOptionsText"?: string;
+        "onItemChanged"?: (event: LumaDropdownCustomEvent<string>) => void;
+        /**
+          * @default 'Select an option'
+         */
+        "placeholder"?: string;
+        /**
+          * @default ''
+         */
+        "value"?: string;
+    }
     interface LumaLink {
         /**
           * @default '/'
@@ -151,6 +214,10 @@ declare namespace LocalJSX {
           * @default 'Untitled Page'
          */
         "label"?: string;
+        /**
+          * @default false
+         */
+        "noScroll"?: boolean;
     }
     interface LumaPageContent {
     }
@@ -170,6 +237,7 @@ declare namespace LocalJSX {
     interface IntrinsicElements {
         "luma-app": LumaApp;
         "luma-doc-renderer": LumaDocRenderer;
+        "luma-dropdown": LumaDropdown;
         "luma-link": LumaLink;
         "luma-page": LumaPage;
         "luma-page-content": LumaPageContent;
@@ -185,6 +253,7 @@ declare module "@stencil/core" {
         interface IntrinsicElements {
             "luma-app": LocalJSX.LumaApp & JSXBase.HTMLAttributes<HTMLLumaAppElement>;
             "luma-doc-renderer": LocalJSX.LumaDocRenderer & JSXBase.HTMLAttributes<HTMLLumaDocRendererElement>;
+            "luma-dropdown": LocalJSX.LumaDropdown & JSXBase.HTMLAttributes<HTMLLumaDropdownElement>;
             "luma-link": LocalJSX.LumaLink & JSXBase.HTMLAttributes<HTMLLumaLinkElement>;
             "luma-page": LocalJSX.LumaPage & JSXBase.HTMLAttributes<HTMLLumaPageElement>;
             "luma-page-content": LocalJSX.LumaPageContent & JSXBase.HTMLAttributes<HTMLLumaPageContentElement>;

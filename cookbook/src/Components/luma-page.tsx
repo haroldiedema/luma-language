@@ -1,8 +1,8 @@
-import { Inject }                                  from '@/Framework/DI';
-import { Router }                                  from '@/Framework/Router';
-import {IDisposableComponent, IWebComponent, VDom} from '@/IWebComponent';
-import { EventSubscriber }                         from '@byteshift/events';
-import {Component, Element, h, Host, Prop, State}  from '@stencil/core';
+import { Inject }                                    from '@/Framework/DI';
+import { Router }                                    from '@/Framework/Router';
+import { IDisposableComponent, IWebComponent, VDom } from '@/IWebComponent';
+import { EventSubscriber }                           from '@byteshift/events';
+import { Component, Element, h, Host, Prop, State }  from '@stencil/core';
 
 void h;
 
@@ -13,7 +13,8 @@ void h;
 })
 export class LumaPage implements IWebComponent, IDisposableComponent
 {
-    @Prop() public label: string = 'Untitled Page';
+    @Prop() public label: string     = 'Untitled Page';
+    @Prop() public noScroll: boolean = false;
 
     @Element() private readonly $host: HTMLElement;
 
@@ -59,7 +60,7 @@ export class LumaPage implements IWebComponent, IDisposableComponent
                             {this.hasNavigation && (
                                 <button
                                     id="mobile-nav-button"
-                                    onClick={() => this.navOpen = !this.navOpen}
+                                    onClick={() => this.navOpen = ! this.navOpen}
                                     class={{active: this.navOpen}}
                                 >
                                     <i class={`fa ${this.navOpen ? 'fa-chevron-up' : 'fa-chevron-down'}`}/>
@@ -76,7 +77,7 @@ export class LumaPage implements IWebComponent, IDisposableComponent
                         </section>
                     </div>
                 </header>
-                <main class="page-body">
+                <main class={{'page-body': true, 'no-scroll': this.noScroll}}>
                     <div class="container">
                         {this.hasNavigation && (
                             <nav class={{'page-nav': true, show: this.navOpen}}>

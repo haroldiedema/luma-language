@@ -196,5 +196,13 @@ luma-page {
                 }
             }
         }
+
+        &.no-scroll {
+            overflow: hidden;
+
+            & > .container > .page-content {
+                height: 100%;
+            }
+        }
     }
 }

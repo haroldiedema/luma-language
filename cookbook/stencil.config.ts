@@ -9,7 +9,7 @@ const isWatchMode = process.argv.includes('--watch');
 export const config: Config = {
     namespace:     'luma',
     srcDir:        'src',
-    plugins:       [sass(), docsWatcher()],
+    plugins:       [sass(), docsPlugin()],
     outputTargets: [
         {
             type:          'www',
@@ -21,6 +21,7 @@ export const config: Config = {
                 {src: 'index.html'},
                 {src: '404.html'},
                 {src: 'Assets', dest: 'assets'},
+                {src: '../node_modules/monaco-editor/min/vs', dest: 'vs'},
             ],
         },
     ],

@@ -79,6 +79,7 @@ page-playground {
                     border: 0;
                     padding: 0 16px;
                     background: var(--bg-1);
+                    border-radius: 0;
                     color: var(--fg-1);
                     border-right: 1px solid var(--border-0);
                     cursor: pointer;
@@ -105,6 +106,12 @@ page-playground {
                         text-shadow: 0 0 2px var(--bg-0), 0 0 16px rgba(255, 255, 255, .5);
                     }
                 }
+            }
+
+            & > section.tab-content {
+                flex: 1;
+                min-height: 0;
+                overflow-y: auto;
             }
         }
 

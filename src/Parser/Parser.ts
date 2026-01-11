@@ -1,3 +1,4 @@
+import { LumaError }                                                 from '../LumaError.js';
 import { Punctuation, Token, TokenPosition, TokenStream, TokenType } from '../Tokenizer/index.js';
 import type * as AST                                                 from './AST.js';
 import { Expr }                                                      from './AST.js';
@@ -5,15 +6,18 @@ import { Expr }                                                      from './AST
 export class Parser
 {
     private stream: TokenStream;
+    private moduleName?: string;
+    private lastToken?: Token;
 
-    public static parse(tokens: TokenStream): AST.Script
+    public static parse(tokens: TokenStream, moduleName: string | undefined = undefined): AST.Script
     {
-        return new Parser(tokens).parse();
+        return new Parser(tokens, moduleName).parse();
     }
 
-    constructor(stream: TokenStream)
+    private constructor(stream: TokenStream, moduleName?: string)
     {
-        this.stream = stream;
+        this.stream     = stream;
+        this.moduleName = moduleName;
     }
 
     public parse(): AST.Script
@@ -36,10 +40,16 @@ export class Parser
             };
         } catch (e) {
             if (! (e instanceof Error)) {
+                console.warn('Parser did not throw an instance of Error!', e);
                 throw e;
             }
 
-            throw new Error(`Parse Error: ${e.message} at line ${this.stream.peek()?.position.lineStart}, column ${this.stream.peek()?.position.columnStart}`);
+            throw new LumaError({
+                message:    e.message,
+                moduleName: this.moduleName,
+                position:   this.lastToken?.position ?? {lineStart: 1, lineEnd: 1, columnStart: 1, columnEnd: 1},
+                cause:      e,
+            });
         }
     }
 
@@ -150,9 +160,9 @@ export class Parser
                         const id = this.parseIdentifier();
 
                         params.push({
-                            type: 'PromotedParameter',
-                            value: id.value,
-                            position: id.position
+                            type:     'PromotedParameter',
+                            value:    id.value,
+                            position: id.position,
                         });
                     } else {
                         // Existing: Standard parameter
@@ -923,6 +933,8 @@ export class Parser
 
             throw new Error(msg + pos);
         }
+
+        this.lastToken = token;
 
         return this.stream.consume();
     }

@@ -1,0 +1,85 @@
+@use "../shared" as *;
+
+:host {
+    @include flex(column, flex-start, stretch);
+    flex: 1;
+    min-height: 0;
+    height: 100%;
+    overflow-y: scroll;
+    background: var(--bg-2);
+    padding: 10px;
+}
+
+main {
+    @include flex(column, flex-start, stretch);
+    flex: 1;
+    min-height: 0;
+
+    & > header {
+        @include flex(row, center, space-between);
+        margin-bottom: 10px;
+        margin-top: 20px;
+        font-size: 16px;
+        font-weight: 500;
+        color: var(--fg-1);
+        border-bottom: 1px solid var(--border-0);
+        border-top: 1px solid var(--border-0);
+
+        &:first-of-type {
+            margin-top: 0;
+        }
+    }
+
+    & > table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+        font-family: 'Courier New', Courier, monospace;
+        color: var(--fg-2);
+
+        th, td {
+            padding: 2px 8px;
+            text-align: left;
+            white-space: nowrap;
+
+            &.addr {
+                width: 80px;
+                color: var(--fg-1);
+            }
+
+            &.opcode {
+                text-align: right;
+            }
+
+            &.comment {
+                white-space: nowrap;
+                color: var(--fg-comment);
+            }
+
+            .string {
+                color: var(--fg-string);
+            }
+
+            .number {
+                color: var(--fg-number);
+            }
+
+            .boolean {
+                color: var(--fg-keyword);
+            }
+
+            .null {
+                color: var(--fg-undefined);
+            }
+        }
+
+        th {
+            background: var(--bg-3);
+            color: var(--fg-1);
+        }
+
+        tr:hover {
+            background: var(--bg-4);
+        }
+    }
+}

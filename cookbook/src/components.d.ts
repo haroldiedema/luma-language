@@ -5,8 +5,25 @@
  * It contains typing information for all components that exist in this project.
  */
 import { HTMLStencilElement, JSXBase } from "@stencil/core/internal";
+import { DialogButton } from "./Components/luma-dialog";
+import { LumaWorkspace } from "./Editor/LumaWorkspace";
+export { DialogButton } from "./Components/luma-dialog";
+export { LumaWorkspace } from "./Editor/LumaWorkspace";
 export namespace Components {
     interface LumaApp {
+    }
+    interface LumaDialog {
+        /**
+          * @default []
+         */
+        "buttons": DialogButton[];
+        "dispose": () => Promise<void>;
+        /**
+          * @default 'Untitled Dialog'
+         */
+        "label": string;
+    }
+    interface LumaDialogs {
     }
     interface LumaDocRenderer {
         /**
@@ -60,12 +77,22 @@ export namespace Components {
          */
         "items": PageNavigationItem[];
     }
+    interface LumaPgBytecode {
+        "workspace": LumaWorkspace;
+    }
+    interface LumaPgOutput {
+        "workspace": LumaWorkspace;
+    }
     interface PageDocs {
     }
     interface PageNotFound {
     }
     interface PagePlayground {
     }
+}
+export interface LumaDialogCustomEvent<T> extends CustomEvent<T> {
+    detail: T;
+    target: HTMLLumaDialogElement;
 }
 export interface LumaDropdownCustomEvent<T> extends CustomEvent<T> {
     detail: T;
@@ -81,6 +108,29 @@ declare global {
     var HTMLLumaAppElement: {
         prototype: HTMLLumaAppElement;
         new (): HTMLLumaAppElement;
+    };
+    interface HTMLLumaDialogElementEventMap {
+        "close": void;
+    }
+    interface HTMLLumaDialogElement extends Components.LumaDialog, HTMLStencilElement {
+        addEventListener<K extends keyof HTMLLumaDialogElementEventMap>(type: K, listener: (this: HTMLLumaDialogElement, ev: LumaDialogCustomEvent<HTMLLumaDialogElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLLumaDialogElementEventMap>(type: K, listener: (this: HTMLLumaDialogElement, ev: LumaDialogCustomEvent<HTMLLumaDialogElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
+    }
+    var HTMLLumaDialogElement: {
+        prototype: HTMLLumaDialogElement;
+        new (): HTMLLumaDialogElement;
+    };
+    interface HTMLLumaDialogsElement extends Components.LumaDialogs, HTMLStencilElement {
+    }
+    var HTMLLumaDialogsElement: {
+        prototype: HTMLLumaDialogsElement;
+        new (): HTMLLumaDialogsElement;
     };
     interface HTMLLumaDocRendererElement extends Components.LumaDocRenderer, HTMLStencilElement {
     }
@@ -140,6 +190,18 @@ declare global {
         prototype: HTMLLumaPageNavElement;
         new (): HTMLLumaPageNavElement;
     };
+    interface HTMLLumaPgBytecodeElement extends Components.LumaPgBytecode, HTMLStencilElement {
+    }
+    var HTMLLumaPgBytecodeElement: {
+        prototype: HTMLLumaPgBytecodeElement;
+        new (): HTMLLumaPgBytecodeElement;
+    };
+    interface HTMLLumaPgOutputElement extends Components.LumaPgOutput, HTMLStencilElement {
+    }
+    var HTMLLumaPgOutputElement: {
+        prototype: HTMLLumaPgOutputElement;
+        new (): HTMLLumaPgOutputElement;
+    };
     interface HTMLPageDocsElement extends Components.PageDocs, HTMLStencilElement {
     }
     var HTMLPageDocsElement: {
@@ -160,12 +222,16 @@ declare global {
     };
     interface HTMLElementTagNameMap {
         "luma-app": HTMLLumaAppElement;
+        "luma-dialog": HTMLLumaDialogElement;
+        "luma-dialogs": HTMLLumaDialogsElement;
         "luma-doc-renderer": HTMLLumaDocRendererElement;
         "luma-dropdown": HTMLLumaDropdownElement;
         "luma-link": HTMLLumaLinkElement;
         "luma-page": HTMLLumaPageElement;
         "luma-page-content": HTMLLumaPageContentElement;
         "luma-page-nav": HTMLLumaPageNavElement;
+        "luma-pg-bytecode": HTMLLumaPgBytecodeElement;
+        "luma-pg-output": HTMLLumaPgOutputElement;
         "page-docs": HTMLPageDocsElement;
         "page-not-found": HTMLPageNotFoundElement;
         "page-playground": HTMLPagePlaygroundElement;
@@ -173,6 +239,19 @@ declare global {
 }
 declare namespace LocalJSX {
     interface LumaApp {
+    }
+    interface LumaDialog {
+        /**
+          * @default []
+         */
+        "buttons"?: DialogButton[];
+        /**
+          * @default 'Untitled Dialog'
+         */
+        "label"?: string;
+        "onClose"?: (event: LumaDialogCustomEvent<void>) => void;
+    }
+    interface LumaDialogs {
     }
     interface LumaDocRenderer {
         /**
@@ -228,6 +307,12 @@ declare namespace LocalJSX {
         "items"?: PageNavigationItem[];
         "onItemsChanged"?: (event: LumaPageNavCustomEvent<PageNavigationItem[]>) => void;
     }
+    interface LumaPgBytecode {
+        "workspace"?: LumaWorkspace;
+    }
+    interface LumaPgOutput {
+        "workspace"?: LumaWorkspace;
+    }
     interface PageDocs {
     }
     interface PageNotFound {
@@ -236,12 +321,16 @@ declare namespace LocalJSX {
     }
     interface IntrinsicElements {
         "luma-app": LumaApp;
+        "luma-dialog": LumaDialog;
+        "luma-dialogs": LumaDialogs;
         "luma-doc-renderer": LumaDocRenderer;
         "luma-dropdown": LumaDropdown;
         "luma-link": LumaLink;
         "luma-page": LumaPage;
         "luma-page-content": LumaPageContent;
         "luma-page-nav": LumaPageNav;
+        "luma-pg-bytecode": LumaPgBytecode;
+        "luma-pg-output": LumaPgOutput;
         "page-docs": PageDocs;
         "page-not-found": PageNotFound;
         "page-playground": PagePlayground;
@@ -252,12 +341,16 @@ declare module "@stencil/core" {
     export namespace JSX {
         interface IntrinsicElements {
             "luma-app": LocalJSX.LumaApp & JSXBase.HTMLAttributes<HTMLLumaAppElement>;
+            "luma-dialog": LocalJSX.LumaDialog & JSXBase.HTMLAttributes<HTMLLumaDialogElement>;
+            "luma-dialogs": LocalJSX.LumaDialogs & JSXBase.HTMLAttributes<HTMLLumaDialogsElement>;
             "luma-doc-renderer": LocalJSX.LumaDocRenderer & JSXBase.HTMLAttributes<HTMLLumaDocRendererElement>;
             "luma-dropdown": LocalJSX.LumaDropdown & JSXBase.HTMLAttributes<HTMLLumaDropdownElement>;
             "luma-link": LocalJSX.LumaLink & JSXBase.HTMLAttributes<HTMLLumaLinkElement>;
             "luma-page": LocalJSX.LumaPage & JSXBase.HTMLAttributes<HTMLLumaPageElement>;
             "luma-page-content": LocalJSX.LumaPageContent & JSXBase.HTMLAttributes<HTMLLumaPageContentElement>;
             "luma-page-nav": LocalJSX.LumaPageNav & JSXBase.HTMLAttributes<HTMLLumaPageNavElement>;
+            "luma-pg-bytecode": LocalJSX.LumaPgBytecode & JSXBase.HTMLAttributes<HTMLLumaPgBytecodeElement>;
+            "luma-pg-output": LocalJSX.LumaPgOutput & JSXBase.HTMLAttributes<HTMLLumaPgOutputElement>;
             "page-docs": LocalJSX.PageDocs & JSXBase.HTMLAttributes<HTMLPageDocsElement>;
             "page-not-found": LocalJSX.PageNotFound & JSXBase.HTMLAttributes<HTMLPageNotFoundElement>;
             "page-playground": LocalJSX.PagePlayground & JSXBase.HTMLAttributes<HTMLPagePlaygroundElement>;

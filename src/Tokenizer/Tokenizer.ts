@@ -1,3 +1,4 @@
+import { LumaError }   from '../LumaError.js';
 import { Keywords }    from './Keywords.js';
 import { Operators }   from './Operators.js';
 import { Punctuation } from './Punctuation.js';
@@ -19,6 +20,7 @@ export class Tokenizer
 
     private readonly _tokens: Token[] = [];
     private readonly _source: string;
+    private readonly _moduleName: string | undefined;
 
     private index: number            = 0;
     private line: number             = 1;
@@ -26,18 +28,19 @@ export class Tokenizer
     private indentStack: number[]    = [0];
     private isAtStartOfLine: boolean = true;
 
-    private constructor(source: string)
+    private constructor(source: string, moduleName: string | undefined)
     {
-        this._source = source.replace(/\r\n/g, '\n');
+        this._source     = source.replace(/\r\n/g, '\n');
+        this._moduleName = moduleName;
     }
 
-    public static tokenize(source: string): TokenStream
+    public static tokenize(source: string, moduleName: string | undefined = undefined): TokenStream
     {
         if (! source.endsWith('\n')) {
             source += '\n';
         }
 
-        return new Tokenizer(source).tokenize();
+        return new Tokenizer(source, moduleName).tokenize();
     }
 
     private tokenize(): TokenStream
@@ -628,7 +631,16 @@ export class Tokenizer
 
     private throwError(msg: string): void
     {
-        throw new Error(`${msg} at line ${this.line}, column ${this.col}`);
+        throw new LumaError({
+            message:    `${msg} at line ${this.line}, column ${this.col}`,
+            moduleName: this._moduleName,
+            position:   {
+                lineStart:   this.line,
+                columnStart: this.col,
+                lineEnd:     this.line,
+                columnEnd:   this.col + 1,
+            },
+        });
     }
 
     private throwUnexpectedCharacterError(): void

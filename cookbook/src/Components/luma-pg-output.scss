@@ -1,0 +1,47 @@
+@use "../shared" as *;
+
+:host {
+    @include flex(column, flex-start, stretch);
+    flex: 1;
+    min-height: 0;
+    height: 100%;
+    overflow-y: scroll;
+    background: var(--bg-2);
+    padding: 10px;
+}
+
+pre {
+    background: var(--bg-1);
+    border: 1px solid var(--border-1);
+    border-radius: 5px;
+    padding: 10px;
+    margin: 0;
+    white-space: pre-wrap;
+
+    .string {
+        color: var(--fg-string);
+    }
+    .number {
+        color: var(--fg-number);
+    }
+    .boolean {
+        color: var(--fg-keyword);
+    }
+    .punctuation {
+        color: var(--fg-punctuation);
+    }
+    .operator {
+        color: var(--fg-operator);
+    }
+    .items {
+        padding-left: 16px;
+    }
+
+    .error {
+        margin: 10px 0;
+        padding: 8px;
+        border-left: 4px solid var(--bg-danger);
+        color: var(--fg-danger);
+        text-shadow: 1px 1px var(--bg-0);
+    }
+}

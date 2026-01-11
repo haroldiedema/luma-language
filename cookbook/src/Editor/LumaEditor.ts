@@ -1,8 +1,8 @@
-import { LanguageProvider } from '@/Editor/LanguageProvider';
-import { LumaWorkspace }    from '@/Editor/LumaWorkspace';
-import { EventSubscriber }  from '@byteshift/events';
+import { LanguageProvider }              from '@/Editor/LanguageProvider';
+import { LumaWorkspace }                 from '@/Editor/LumaWorkspace';
+import { EventEmitter, EventSubscriber } from '@byteshift/events';
 
-export class LumaEditor
+export class LumaEditor extends EventEmitter
 {
     public static async create(target: HTMLElement): Promise<LumaEditor>
     {
@@ -31,9 +31,11 @@ export class LumaEditor
 
     private constructor(target: HTMLElement)
     {
-        this._targetElement          = target;
-        this._editor                 = this.createEditor();
-        this._observer               = new ResizeObserver(this.onResize.bind(this));
+        super();
+
+        this._targetElement = target;
+        this._editor        = this.createEditor();
+        this._observer      = new ResizeObserver(this.onResize.bind(this));
         this._observer.observe(this._targetElement);
 
         this.createWorkspace('Playground');
@@ -57,7 +59,7 @@ export class LumaEditor
             this._workspaceSubscriptions = [];
         }
 
-        this._workspaceModuleNames = [];
+        this._workspaceModuleNames   = [];
         this._workspaceSubscriptions = [
             workspace.on('file-opened', (moduleName: string) => {
                 this._editor.setModel(workspace.getModule(moduleName).textModel);
@@ -80,12 +82,14 @@ export class LumaEditor
                 }
             }),
             workspace.on('file-changed', (moduleName: string) => {
-                console.log(`Module changed: ${moduleName}`);
+                // console.log(`Module changed: ${moduleName}`);
             }),
         ];
 
         this._workspace = workspace;
+        this.emit('workspace-changed', workspace);
         this._workspace.open('main');
+        this._workspace.activate();
     }
 
     public createWorkspace(name: string, modules: Record<string, string> = {}): LumaWorkspace
@@ -100,6 +104,7 @@ export class LumaEditor
             workspace.addModule(moduleName, moduleSource);
         }
 
+        this.emit('workspace-created', workspace);
         this.openWorkspace(workspace);
 
         return workspace;
@@ -130,4 +135,11 @@ export class LumaEditor
             this._editor?.layout();
         });
     }
+}
+
+export interface LumaEditor
+{
+    on(event: 'workspace-created', listener: (workspace: LumaWorkspace) => void): EventSubscriber;
+
+    on(event: 'workspace-changed', listener: (workspace: LumaWorkspace) => void): EventSubscriber;
 }

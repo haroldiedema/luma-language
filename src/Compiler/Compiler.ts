@@ -1,3 +1,4 @@
+import { LumaError }                    from '../LumaError.js';
 import * as AST                         from '../Parser/AST.js';
 import { Parser }                       from '../Parser/index.js';
 import { Instruction, Opcode, Program } from '../Program/index.js';
@@ -27,8 +28,8 @@ export class Compiler
 
     public static compile(source: string, moduleName?: string): Program
     {
-        const tokens = Tokenizer.tokenize(source);
-        const ast    = Parser.parse(tokens);
+        const tokens = Tokenizer.tokenize(source, moduleName);
+        const ast    = Parser.parse(tokens, moduleName);
 
         return new Compiler().compile(moduleName, source, ast);
     }
@@ -185,7 +186,7 @@ export class Compiler
                 break;
 
             default:
-                throw new Error(`Compiler: Unknown node type ${node.type}`);
+                this.throwError(`Compiler: Unknown node type ${node.type}`, node);
         }
     }
 
@@ -247,7 +248,7 @@ export class Compiler
                 this.emit(Opcode.IS);
                 break;
             default:
-                throw new Error(`Compiler: Unknown binary operator ${node.operator}`);
+                this.throwError(`Compiler: Unknown binary operator ${node.operator}`, node);
         }
     }
 
@@ -286,7 +287,7 @@ export class Compiler
                 this.emit(Opcode.NEG);
                 break;
             default:
-                throw new Error(`Compiler: Unknown unary operator ${node.operator}`);
+                this.throwError(`Compiler: Unknown unary operator ${node.operator}`, node);
         }
     }
 
@@ -437,7 +438,7 @@ export class Compiler
             this.visit(node.property);
         } else {
             if (node.property.type !== 'Identifier') {
-                throw new Error('Dot notation requires an identifier.');
+                this.throwError('Dot notation requires an identifier.', node);
             }
 
             this.emit(Opcode.CONST, (node.property as AST.Identifier).value);
@@ -493,7 +494,7 @@ export class Compiler
             return;
         }
 
-        throw new Error('Invalid assignment target');
+        this.throwError('Invalid assignment target', node.left ?? node);
     }
 
     private visitArrayComprehension(node: AST.ArrayComprehension)
@@ -630,7 +631,7 @@ export class Compiler
     private visitBreakStatement(node: AST.BreakStatement)
     {
         if (this.loopStack.length === 0) {
-            throw new Error('Compiler Error: \'break\' used outside of loop');
+            this.throwError('Compiler Error: \'break\' used outside of loop', node);
         }
 
         const ctx = this.loopStack[this.loopStack.length - 1];
@@ -647,7 +648,7 @@ export class Compiler
     private visitContinueStatement(node: AST.ContinueStatement)
     {
         if (this.loopStack.length === 0) {
-            throw new Error('Compiler Error: \'continue\' used outside of loop');
+            this.throwError('Compiler Error: \'continue\' used outside of loop', node);
         }
 
         const ctx = this.loopStack[this.loopStack.length - 1];
@@ -678,12 +679,13 @@ export class Compiler
 
         // AMBIGUITY CHECK
         if (node.params.length > 0 && initMethod && initMethod.params.length > 0) {
-            throw new Error(
+            this.throwError(
                 `Class '${node.name.value}' has an ambiguous constructor definition.\n\n` +
                 `It defines parameters in the class header (${node.params.length}) AND in the 'init' method (${initMethod.params.length}).\n` +
                 `Please use only one style:\n` +
                 `  1. Header params: class ${node.name.value}(...) + fn init()\n` +
                 `  2. Init params:   class ${node.name.value} + fn init(...)`,
+                node
             );
         }
 
@@ -1023,6 +1025,15 @@ export class Compiler
         return [h1, h2, h3, h4]
             .map(h => (h >>> 0).toString(16).padStart(8, '0'))
             .join('');
+    }
+
+    private throwError(message: string, node: AST.Expr | AST.Stmt): never
+    {
+        throw new LumaError({
+            message:    message,
+            moduleName: this.program.moduleName,
+            position:   node.position,
+        });
     }
 }
 

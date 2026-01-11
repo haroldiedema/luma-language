@@ -1,4 +1,5 @@
 import {Inject, ServiceContainer}                from '@/Framework/DI';
+import { DialogManager }                         from '@/Framework/Dialog/DialogManager';
 import {Router}                                  from '@/Framework/Router/Router';
 import {IComponentWillLoad, IWebComponent, VDom} from '@/IWebComponent';
 import {Component, h, Host, State}               from '@stencil/core';
@@ -13,6 +14,7 @@ void h;
 export class LumaApp implements IWebComponent, IComponentWillLoad
 {
     @Inject private readonly router: Router;
+    @Inject private readonly dm: DialogManager;
 
     @State() private pageTag: string = 'page-playground';
 
@@ -69,6 +71,7 @@ export class LumaApp implements IWebComponent, IComponentWillLoad
                 <main id="main-body">
                     <this.pageTag/>
                 </main>
+                <luma-dialogs/>
             </Host>
         );
     }

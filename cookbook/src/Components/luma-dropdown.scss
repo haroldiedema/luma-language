@@ -70,16 +70,21 @@ luma-dropdown {
                 background: var(--bg-1);
             }
 
-            &.selected::after {
-                content: '';
-                position: absolute;
-                top: 4px;
-                bottom: 4px;
-                left: 0;
-                width: 4px;
-                height: calc(100% - 8px);
-                background: var(--bg-3);
-                border-radius: 4px 0 0 4px;
+            &.selected {
+                text-shadow: 0 0 2px var(--bg-0), 0 0 8px rgba(255, 255, 255, .5);
+                color: var(--fg-3);
+
+                &::after {
+                    content: '';
+                    position: absolute;
+                    top: 4px;
+                    bottom: 4px;
+                    left: 0;
+                    width: 4px;
+                    height: calc(100% - 8px);
+                    background: var(--bg-3);
+                    border-radius: 4px 0 0 4px;
+                }
             }
         }
     }

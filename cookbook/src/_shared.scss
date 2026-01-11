@@ -21,6 +21,7 @@
     --fg-comment     : #6a9955;
     --fg-operator    : #d4d4d4;
     --fg-punctuation : #d4d4d4;
+    --fg-undefined   : #c586c0;
 
     --border-0       : rgba(255, 255, 255, 0.1);
     --border-1       : rgba(255, 255, 255, 0.25);
@@ -31,6 +32,13 @@
     --bg-tip         : #6a994e;
     --bg-warning     : #936217;
     --bg-caution     : #e94560;
+
+    --bg-primary     : #0078d7;
+    --bg-secondary   : #2d2d30;
+    --bg-danger      : #d83b01;
+    --fg-primary     : #ffffff;
+    --fg-secondary   : #c8c8c8;
+    --fg-danger      : #ffffff;
 
     scrollbar-color  : var(--fg-0) var(--bg-1);
 }
@@ -118,4 +126,57 @@
     font-display  : block;
     src           : url(/assets/fa-v4compatibility.woff2) format('woff2');
     unicode-range : u+f041, u+f047, u+f065-f066, u+f07d-f07e, u+f080, u+f08b, u+f08e, u+f090, u+f09a, u+f0ac, u+f0ae, u+f0b2, u+f0d0, u+f0d6, u+f0e4, u+f0ec, u+f10a-f10b, u+f123, u+f13e, u+f148-f149, u+f14c, u+f156, u+f15e, u+f160-f161, u+f163, u+f175-f178, u+f195, u+f1f8, u+f219, u+f27a
+}
+
+input[type=text] {
+    @include flex(row, flex-start, center);
+    border: 1px solid var(--border-2);
+    border-radius: 4px;
+    background: var(--bg-0);
+    color: var(--fg-2);
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    padding: 4px;
+}
+
+button {
+    @include flex(row, center, center);
+    border: none;
+    border-radius: 4px;
+    background: var(--bg-1);
+    color: var(--fg-2);
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    padding: 8px 16px;
+    cursor: pointer;
+    transition: background 0.2s ease-in-out, color 0.2s ease-in-out;
+
+    &.primary {
+        background: var(--bg-primary);
+        color: var(--fg-primary);
+    }
+
+    &.secondary {
+        background: var(--bg-secondary);
+        color: var(--fg-secondary);
+    }
+
+    &.danger {
+        background: var(--bg-danger);
+        color: var(--fg-danger);
+    }
+
+    &:hover {
+        filter: brightness(1.1);
+    }
+
+    &:active {
+        box-shadow: inset 0 0 8px rgba(0, 0, 0, .35);
+    }
+
+    &:disabled {
+        background: var(--bg-0);
+        color: var(--fg-0);
+        cursor: not-allowed;
+    }
 }

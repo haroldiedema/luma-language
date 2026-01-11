@@ -1,0 +1,15 @@
+@use "../shared" as *;
+
+:host {
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: 0.2s ease-in-out;
+    pointer-events: none;
+}
+
+:host(.active) {
+    opacity: 1;
+    pointer-events: all;
+}

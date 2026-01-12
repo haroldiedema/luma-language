@@ -150,6 +150,7 @@ button {
     padding: 8px 16px;
     cursor: pointer;
     transition: background 0.2s ease-in-out, color 0.2s ease-in-out;
+    height: 32px;
 
     &.primary {
         background: var(--bg-primary);
@@ -178,5 +179,14 @@ button {
         background: var(--bg-0);
         color: var(--fg-0);
         cursor: not-allowed;
+    }
+
+    &.icon {
+        padding: 0 6px;
+    }
+
+    &.small {
+        height: 24px;
+        padding: 0 4px;
     }
 }

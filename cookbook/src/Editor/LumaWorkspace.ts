@@ -1,6 +1,7 @@
 import { Model }                         from '@/Editor/Model';
 import { EventEmitter, EventSubscriber } from '@byteshift/events';
 import { LumaError }                     from '@luma/LumaError';
+import { LumaRuntimeError }              from '@luma/LumaRuntimeError';
 import { Program }                       from '@luma/Program';
 import { VirtualMachine }                from '@luma/VM';
 
@@ -13,7 +14,6 @@ export class LumaWorkspace extends EventEmitter
 
     private _vm: VirtualMachine | null = null;
     private _debounceTimer: any        = null;
-    private _isActive: boolean         = false;
 
     constructor(name: string)
     {
@@ -23,18 +23,9 @@ export class LumaWorkspace extends EventEmitter
         this.addModule('main', `// Welcome to Luma!\n\n// Start coding here...`);
     }
 
-    public activate(): void
-    {
-        if (this._isActive) return;
-        this._isActive = true;
-
-        this.update();
-        requestAnimationFrame(t => this.tick(t, t));
-    }
-
     public dispose(): void
     {
-        this._isActive = false;
+        this._vm = null;
 
         this.modules.forEach((module, name) => {
             this.subscriptions.get(name)?.forEach(s => s.unsubscribe());
@@ -122,13 +113,36 @@ export class LumaWorkspace extends EventEmitter
         return Array.from(this.modules.values()).map(m => m.program).filter(p => !!p);
     }
 
-    private scheduleUpdate(): void
+    public toJSON(): any
     {
-        clearTimeout(this._debounceTimer);
-        this._debounceTimer = setTimeout(() => this.update(), 250);
+        return {
+            name:    this.name,
+            modules: Array.from(this.modules.entries()).reduce((obj, [name, model]) => {
+                obj[name] = model.getContent();
+                return obj;
+            }, {} as any),
+        }
     }
 
-    private update(): void
+    public tick(deltaTime: number): void
+    {
+        if (! this._vm) {
+            return;
+        }
+
+        try {
+            this._vm?.run(deltaTime);
+        } catch (e: any) {
+            this.emit('vm-error', e);
+            this.emit('vm-runtime-error', e);
+
+            if (e.program) {
+                this.modules.get(e.program.moduleName)?.setRuntimeError(e);
+            }
+        }
+    }
+
+    public update(): void
     {
         const program = this.modules.get('main')!.program;
         if (! program) {
@@ -150,23 +164,12 @@ export class LumaWorkspace extends EventEmitter
         });
 
         this.emit('vm-created', this._vm);
-        this.activate();
     }
 
-    private tick(time: number, prevTime: number): void
+    public scheduleUpdate(): void
     {
-        const deltaTime = time - prevTime;
-
-        try {
-            this._vm?.run(deltaTime);
-        } catch (e) {
-            this._isActive = false;
-            this.emit('vm-error', e);
-        }
-
-        if (this._isActive) {
-            requestAnimationFrame(t => this.tick(t, time));
-        }
+        clearTimeout(this._debounceTimer);
+        this._debounceTimer = setTimeout(() => this.update(), 250);
     }
 }
 
@@ -185,4 +188,6 @@ export interface LumaWorkspace
     on(event: 'vm-output', listener: (...args: any[]) => void): EventSubscriber;
 
     on(event: 'vm-error', listener: (error: LumaError) => void): EventSubscriber;
+
+    on(event: 'vm-runtime-error', listener: (error: LumaRuntimeError) => void): EventSubscriber;
 }

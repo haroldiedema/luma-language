@@ -16,7 +16,7 @@ export class LumaError extends Error
     }
 }
 
-type LumaErrorOptions = {
+export type LumaErrorOptions = {
     message: string;
     moduleName?: string;
     position?: TokenPosition;

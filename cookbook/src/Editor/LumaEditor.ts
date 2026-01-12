@@ -38,7 +38,7 @@ export class LumaEditor extends EventEmitter
         this._observer      = new ResizeObserver(this.onResize.bind(this));
         this._observer.observe(this._targetElement);
 
-        this.createWorkspace('Playground');
+        requestAnimationFrame((t) => this.tick(t, t));
     }
 
     /**
@@ -53,6 +53,12 @@ export class LumaEditor extends EventEmitter
 
     public openWorkspace(workspace: LumaWorkspace): void
     {
+        console.log('>> Open workspace:', workspace.name);
+
+        if (this._workspace === workspace) {
+            return;
+        }
+
         if (this._workspace) {
             this._workspace.dispose();
             this._workspaceSubscriptions.forEach(s => s.unsubscribe());
@@ -82,17 +88,17 @@ export class LumaEditor extends EventEmitter
                 }
             }),
             workspace.on('file-changed', (moduleName: string) => {
-                // console.log(`Module changed: ${moduleName}`);
+                //
             }),
         ];
 
-        this._workspace = workspace;
         this.emit('workspace-changed', workspace);
+        this._workspace = workspace;
         this._workspace.open('main');
-        this._workspace.activate();
+        this._workspace.scheduleUpdate();
     }
 
-    public createWorkspace(name: string, modules: Record<string, string> = {}): LumaWorkspace
+    public createWorkspace(name: string, modules: Record<string, string> = {}, open: boolean = true): LumaWorkspace
     {
         const workspace = new LumaWorkspace(name);
 
@@ -104,8 +110,10 @@ export class LumaEditor extends EventEmitter
             workspace.addModule(moduleName, moduleSource);
         }
 
-        this.emit('workspace-created', workspace);
-        this.openWorkspace(workspace);
+        if (open) {
+            this.emit('workspace-created', workspace);
+            this.openWorkspace(workspace);
+        }
 
         return workspace;
     }
@@ -134,6 +142,14 @@ export class LumaEditor extends EventEmitter
         requestAnimationFrame(() => {
             this._editor?.layout();
         });
+    }
+
+    private tick(time: number, prevTime: number): void
+    {
+        const deltaTime = time - prevTime;
+        this._workspace?.tick(deltaTime);
+
+        requestAnimationFrame(t => this.tick(t, time));
     }
 }
 

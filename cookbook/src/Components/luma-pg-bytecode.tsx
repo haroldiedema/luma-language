@@ -1,8 +1,10 @@
+import { LumaEditor }                              from '@/Editor';
 import { LumaWorkspace }                           from '@/Editor/LumaWorkspace';
 import { IComponentWillLoad, IWebComponent, VDom } from '@/IWebComponent';
 import { EventSubscriber }                         from '@byteshift/events';
+import { LumaRuntimeError }                        from '@luma/LumaRuntimeError';
 import { Program }                                 from '@luma/Program';
-import { Component, h, Prop, Watch }               from '@stencil/core';
+import { Component, h, Prop, State, Watch }        from '@stencil/core';
 
 void h;
 
@@ -15,7 +17,9 @@ export class LumaPgBytecode implements IWebComponent, IComponentWillLoad
 {
     @Prop() public workspace: LumaWorkspace;
 
-    private subscriptions: EventSubscriber[] = [];
+    @State() private error: LumaRuntimeError | null = null;
+
+    private subscriptions: EventSubscriber[]    = [];
     private outputElement: HTMLElement;
 
     public async componentWillLoad(): Promise<void>
@@ -40,22 +44,38 @@ export class LumaPgBytecode implements IWebComponent, IComponentWillLoad
         this.subscriptions.forEach(s => s.unsubscribe());
         this.subscriptions = [
             this.workspace.on('vm-created', () => {
-                this.outputElement.innerHTML = '';
-                for (const program of this.workspace.programList) {
-                    this.renderBytecode(program);
-                }
+                this.error = null;
+                this.renderAll()
+            }),
+            this.workspace.on('vm-runtime-error', (err: LumaRuntimeError) => {
+                this.error = err;
+                this.renderAll();
             }),
         ];
+    }
+
+    private renderAll(): void
+    {
+        this.outputElement.innerHTML = '';
+
+        for (const program of this.workspace.programList) {
+            this.renderBytecode(program);
+        }
     }
 
     private renderBytecode(program: Program): void
     {
         const src: string[] = [];
+        const err: LumaRuntimeError | null = program === this.error?.program ? this.error : null;
+
+        if (err) {
+            console.log('Found error:', err);
+        }
 
         src.push(`<header>${program.moduleName}</header>`, `<table>`);
         program.instructions.forEach((i, addr) => {
             src.push(
-                '<tr>',
+                `<tr id="addr-${addr}" class="${err?.address === addr ? 'halted' : ''}">`,
                 '<td class="addr">',
                 addr.toString(10).padStart(8, '0'),
                 '</td>',

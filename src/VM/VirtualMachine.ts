@@ -1,3 +1,4 @@
+import { LumaRuntimeError }                                 from '../LumaRuntimeError.js';
 import { Program }                                          from '../Program/index.js';
 import { ANSI }                                             from '../Utility/ANSI.js';
 import { Deserializer }                                     from './Deserializer.js';
@@ -128,7 +129,14 @@ export class VirtualMachine extends InstructionSet
             this.result.isCompleted = true;
 
             if (this.throwOnError) {
-                throw new Error(this.createErrorMessageFromDiagnostic(this.result.error));
+                throw new LumaRuntimeError({
+                    message:    this.createErrorMessageFromDiagnostic(this.result.error),
+                    moduleName: this.state.currentProgram.moduleName,
+                    position:   this.state.currentProgram.instructions[this.state.ip]?.pos,
+                    program:    this.state.currentProgram,
+                    address:    Math.max(0, this.state.ip - 1),
+                    cause:      e,
+                });
             }
         }
 

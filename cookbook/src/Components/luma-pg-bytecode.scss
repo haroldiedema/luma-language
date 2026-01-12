@@ -37,49 +37,52 @@ main {
         font-family: 'Courier New', Courier, monospace;
         color: var(--fg-2);
 
-        th, td {
-            padding: 2px 8px;
-            text-align: left;
-            white-space: nowrap;
+        tr {
 
-            &.addr {
-                width: 80px;
-                color: var(--fg-1);
-            }
-
-            &.opcode {
-                text-align: right;
-            }
-
-            &.comment {
+            th, td {
+                padding: 2px 8px;
+                text-align: left;
                 white-space: nowrap;
-                color: var(--fg-comment);
+
+                &.addr {
+                    width: 80px;
+                    color: var(--fg-1);
+                }
+
+                &.opcode {
+                    text-align: right;
+                }
+
+                &.comment {
+                    white-space: nowrap;
+                    color: var(--fg-comment);
+                }
+
+                .string {
+                    color: var(--fg-string);
+                }
+
+                .number {
+                    color: var(--fg-number);
+                }
+
+                .boolean {
+                    color: var(--fg-keyword);
+                }
+
+                .null {
+                    color: var(--fg-undefined);
+                }
             }
 
-            .string {
-                color: var(--fg-string);
+            &:hover {
+                background: var(--bg-3);
             }
 
-            .number {
-                color: var(--fg-number);
+            &.halted {
+                background: var(--bg-danger) !important;
+                color: var(--fg-danger) !important;
             }
-
-            .boolean {
-                color: var(--fg-keyword);
-            }
-
-            .null {
-                color: var(--fg-undefined);
-            }
-        }
-
-        th {
-            background: var(--bg-3);
-            color: var(--fg-1);
-        }
-
-        tr:hover {
-            background: var(--bg-4);
         }
     }
 }

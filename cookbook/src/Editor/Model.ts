@@ -1,6 +1,7 @@
 import { EventEmitter, EventSubscriber } from '@byteshift/events';
 import { Compiler }                      from '@luma/Compiler';
 import { LumaError }                     from '@luma/LumaError';
+import { LumaRuntimeError }              from '@luma/LumaRuntimeError';
 import { Program }                       from '@luma/Program';
 
 export class Model extends EventEmitter
@@ -30,7 +31,8 @@ export class Model extends EventEmitter
             this.changeDebounceTimer = setTimeout(() => this.update(), 50);
         });
 
-        this.changeDebounceTimer = setTimeout(() => this.update(), 50);
+        this.update();
+        // this.changeDebounceTimer = setTimeout(() => this.update(), 50);
     }
 
     /**
@@ -76,6 +78,22 @@ export class Model extends EventEmitter
     public get program(): Program | null
     {
         return this._program;
+    }
+
+    public setRuntimeError(e: LumaRuntimeError): void
+    {
+        this._markers = [
+            {
+                startLineNumber: e.position.lineStart,
+                startColumn:     e.position.columnStart,
+                endLineNumber:   e.position.lineEnd,
+                endColumn:       e.position.columnEnd,
+                message:         e.message,
+                severity:        monaco.MarkerSeverity.Error,
+            },
+        ];
+
+        monaco.editor.setModelMarkers(this.model, 'luma', this._markers);
     }
 
     /**

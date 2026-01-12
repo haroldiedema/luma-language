@@ -4,3 +4,4 @@ export * from './Program/index.js';
 export * from './Tokenizer/index.js';
 export * from './VM/index.js';
 export * from './LumaError.js';
+export * from './LumaRuntimeError.js';

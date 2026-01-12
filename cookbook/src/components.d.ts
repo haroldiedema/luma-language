@@ -7,8 +7,10 @@
 import { HTMLStencilElement, JSXBase } from "@stencil/core/internal";
 import { DialogButton } from "./Components/luma-dialog";
 import { LumaWorkspace } from "./Editor/LumaWorkspace";
+import { LumaEditor } from "./Editor/index";
 export { DialogButton } from "./Components/luma-dialog";
 export { LumaWorkspace } from "./Editor/LumaWorkspace";
+export { LumaEditor } from "./Editor/index";
 export namespace Components {
     interface LumaApp {
     }
@@ -81,6 +83,7 @@ export namespace Components {
         "workspace": LumaWorkspace;
     }
     interface LumaPgOutput {
+        "editor": LumaEditor;
         "workspace": LumaWorkspace;
     }
     interface PageDocs {
@@ -311,6 +314,7 @@ declare namespace LocalJSX {
         "workspace"?: LumaWorkspace;
     }
     interface LumaPgOutput {
+        "editor"?: LumaEditor;
         "workspace"?: LumaWorkspace;
     }
     interface PageDocs {

@@ -1,8 +1,9 @@
+import { LumaEditor }                              from '@/Editor';
 import { LumaWorkspace }                           from '@/Editor/LumaWorkspace';
 import { IComponentWillLoad, IWebComponent, VDom } from '@/IWebComponent';
 import { EventSubscriber }                         from '@byteshift/events';
-import { LumaError }                        from '@luma/LumaError';
-import { Component, h, Prop, State, Watch } from '@stencil/core';
+import { LumaError }                               from '@luma/LumaError';
+import { Component, h, Prop, State, Watch }        from '@stencil/core';
 
 void h;
 
@@ -14,13 +15,19 @@ void h;
 export class LumaPgOutput implements IWebComponent, IComponentWillLoad
 {
     @Prop() public workspace: LumaWorkspace;
+    @Prop() public editor: LumaEditor;
 
-    private subscriptions: EventSubscriber[] = [];
+    private wSubscriptions: EventSubscriber[] = [];
+    private eSubscriptions: EventSubscriber[] = [];
     private outputElement: HTMLElement;
 
     public async componentWillLoad(): Promise<void>
     {
         if (this.workspace) {
+            this.onWorkspaceChanged();
+        }
+
+        if (this.editor) {
             this.onEditorChanged();
         }
     }
@@ -28,17 +35,27 @@ export class LumaPgOutput implements IWebComponent, IComponentWillLoad
     render(): VDom
     {
         return (
-            <pre ref={el => this.outputElement = el}>
-                Output will be displayed here.
-            </pre>
+            <pre ref={el => this.outputElement = el}/>
         );
     }
 
-    @Watch('workspace')
+    @Watch('editor')
     private onEditorChanged(): void
     {
-        this.subscriptions.forEach(s => s.unsubscribe());
-        this.subscriptions = [
+        this.eSubscriptions.forEach(s => s.unsubscribe());
+        this.eSubscriptions = [
+            this.editor.on('workspace-changed', () => this.outputElement.innerHTML = ''),
+        ];
+    }
+
+    @Watch('workspace')
+    private onWorkspaceChanged(): void
+    {
+        this.wSubscriptions.forEach(s => s.unsubscribe());
+        this.wSubscriptions = [
+            this.workspace.on('vm-created', () => {
+                this.outputElement.innerHTML = '';
+            }),
             this.workspace.on('vm-output', (...args: any[]) => {
                 const output = document.createElement('div');
                 args.forEach(arg => {

@@ -171,7 +171,7 @@ export class LumaDocRenderer implements IWebComponent, IComponentWillLoad, IComp
     @Watch('section')
     private onPathChanged(): void
     {
-        const doc = docs.find(doc => doc.path === `/docs/${this.page}`);
+        const doc = docs.find(doc => doc.path === `/luma-language/docs/${this.page}`);
 
         if (! doc) {
             this.html = `<h2>Document not found</h2><p>The requested document could not be found.</p>`;

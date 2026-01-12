@@ -18,7 +18,7 @@ export const headingRenderer: MarkedExtension<string, string> = {
             const fullSlug = headingStack.map(h => h.slug).join('-');
             const fullPath = headingStack.map(h => h.slug).join('/');
 
-            return `<h${depth} id="${fullSlug}" data-path="/docs/${fullPath}">${text}</h${depth}>`;
+            return `<h${depth} id="${fullSlug}" data-path="/luma-language/docs/${fullPath}">${text}</h${depth}>`;
         }
     }
 }

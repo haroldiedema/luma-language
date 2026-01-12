@@ -23,12 +23,15 @@ export class LumaApp implements IWebComponent, IComponentWillLoad
         await ServiceContainer.compile();
 
         this.router
-            .add({id: 'docs', name: 'Docs', path: '/docs/:page/:section/:sub3', tag: 'page-docs', isDefault: true})
-            .add({id: 'playground', name: 'Playground', path: '/playground', tag: 'page-playground'})
-            .add({id: 'not-found', name: 'Not Found', path: '/not-found', tag: 'page-not-found', is404: true})
+            .add({id: 'docs', name: 'Docs', path: '/luma-language/docs/:page/:section/:sub3', tag: 'page-docs', isDefault: true})
+            .add({id: 'playground', name: 'Playground', path: '/luma-language/playground', tag: 'page-playground'})
             .on('changed', r => this.pageTag = r.tag);
 
         this.router.init();
+
+        if (! this.router.currentRoute) {
+            window.location.href = '/luma-language/docs';
+        }
     }
 
     /**
@@ -41,7 +44,7 @@ export class LumaApp implements IWebComponent, IComponentWillLoad
                 <nav id="main-nav">
                     <div class="container">
                         <section>
-                            <a class="logo" href="/">
+                            <a class="logo" href="/luma-language">
                                 <div class="logo-icon"/>
                                 <div class="logo-name comfortaa">Luma</div>
                             </a>

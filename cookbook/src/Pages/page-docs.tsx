@@ -81,10 +81,10 @@ export class PageDocs implements IWebComponent, IComponentWillLoad
                 name:   doc.title,
                 href:   doc.path,
                 items:  this.generateLinks(doc.path, doc.links),
-                active: doc.path === `/docs/${this.page}`,
+                active: doc.path === `/luma-language/docs/${this.page}`,
             });
 
-            if (doc.path === `/docs/${this.page}`) {
+            if (doc.path === `/luma-language/docs/${this.page}`) {
                 this.title = doc.title;
             }
         }

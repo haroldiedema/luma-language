@@ -1,8 +1,8 @@
-import {Config}              from '@stencil/core';
-import {sass}                from '@stencil/sass';
-import chokidar, {FSWatcher} from 'chokidar';
-import fs                    from 'node:fs';
-import path                  from 'node:path';
+import { Config }              from '@stencil/core';
+import { sass }                from '@stencil/sass';
+import chokidar, { FSWatcher } from 'chokidar';
+import fs                      from 'node:fs';
+import path                    from 'node:path';
 
 const isWatchMode = process.argv.includes('--watch');
 
@@ -30,6 +30,7 @@ export const config: Config = {
         port:           9000,
         openBrowser:    false,
         reloadStrategy: 'pageReload',
+        basePath:       '/luma-language/',
     },
 };
 
@@ -87,7 +88,6 @@ function collectDocs(dir: string, baseDir: string, docs: any[]): any[]
         .filter(de => de.isFile())
         .map(de => de.name);
 
-
     files.sort();
 
     for (const name of files) {
@@ -105,7 +105,7 @@ function collectDocs(dir: string, baseDir: string, docs: any[]): any[]
         docs.push({
             title,
             content,
-            path:  '/docs/' + title.replace(/\W+/g, '-').toLowerCase(),
+            path:  '/luma-language/docs/' + title.replace(/\W+/g, '-').toLowerCase(),
             links: extractHeaderLinksFromMarkdown(content),
         });
     }
@@ -163,7 +163,7 @@ function extractHeaderLinksFromMarkdown(markdown: string): HeaderLink[]
             } else {
                 const parent = stack[stack.length - 1].node;
 
-                if (!parent.children) {
+                if (! parent.children) {
                     parent.children = [];
                 }
 
